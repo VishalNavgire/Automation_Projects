@@ -1,0 +1,23 @@
+DESCRIPTION 📄
+
+Compares and displays common, uncommon Azure AD groups of two given users or Windows devices in the HTML Report.
+
+Pre-reqs:
+
+🛠️ Use an account that has Admin rights to run this script on a Windows device. 🔐 To interact with Intune's data, log in with an account that has sufficient permissions to read User's or device's properties from Intune. Version Control: 📅 06-Feb-2025 : v1.0
+
+Types of assignments you can make to an Azure AD group from Azure or Intune:
+
+Role-Based Access Control (RBAC): Assign permissions to Azure resources. 🔧 Licenses: Assign licenses for Microsoft 365 services. 📜 Applications: Deploy and manage applications. 📲 Device Configuration: Configure settings on managed devices. 🖥️ Compliance Policies: Define device compliance rules. ✅ Conditional Access: Control access based on conditions. 🔒 Below are some practical use cases and Real-World Scenarios where this script Saves Time ⏳ and can significantly reduce troubleshooting time and efforts:
+
+✅ Intune Policy Not Applying to a User or Device Example: User X reports that their BitLocker encryption policy or Compliance Policy is not being enforced, while User Z (same role, same department) has the correct policies applied. ➡ By running this script, you can quickly identify if User X is missing from a required AAD group that enforces Intune compliance policies. This way it allows the engineer to correct the issue in a few minutes instead of hours.
+
+✅ Application Access Denied for a User Example: User X cannot access Microsoft Teams, OneDrive, or a third-party enterprise application, while User Z (same department) has no issues. ➡ Instead of manually reviewing all assigned groups, this script will instantly highlight missing groups (such as an App Access group), pinpointing the root cause immediately.
+
+✅ Device Configuration Issues After Enrollment Example: Two laptops are enrolled into Intune, but Device A receives all required security configurations, VPN profiles, Wi-Fi settings, and Defender policies, while Device D1 is missing them. ➡ This script will compare AAD group memberships for both devices and show whether Device D1 missed an assignment that was applied to Device D2.
+
+✅ RBAC Role Not Working for an IT Admin Example: An IT admin (ADM01) complains that they cannot perform certain privileged tasks in Intune, while their colleague (ADM02) has no issues. ➡ Running this script will instantly show if Admin User ADM01 is missing an Azure AD role assignment group, ensuring that the correct permissions are granted.
+
+✅ Conditional Access Policy Blocks a User from Logging In Example: User X cannot access Microsoft 365 services due to a Conditional Access Policy preventing logins from their location or device, while User Z has no issues. ➡ The script will compare both users’ group memberships to identify whether User X was excluded from an “Allow Access” group, helping resolve the issue efficiently.
+
+✅ VPN or Remote Access Not Working for a User Example: A user complains that they cannot establish a VPN connection to the corporate network, while another user from the same team has no problems. ➡ Running this script will reveal whether the affected user is missing a required VPN access group, eliminating the need for extensive manual investigation.
