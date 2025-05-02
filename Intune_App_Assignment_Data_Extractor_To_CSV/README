@@ -1,0 +1,31 @@
+🔍 Overview
+Managing app assignments in Microsoft Intune can be tedious—especially when dealing with hundreds or thousands of apps. 
+This PowerShell script automates the process by retrieving assignment details for all Intune apps and exporting them into a structured CSV file. No more clicking through each app manually! 🙌
+
+⚙️ Prerequisites
+PowerShell 5.1 or later
+Admin permissions to access Intune and Entra ID data.
+
+🚀 How to Use
+Open PowerShell as Administrator.
+Run the script.
+Authenticate when prompted.
+Wait for the script to complete.
+Find the CSV file in the output directory.
+
+📂 Output
+The script generates a CSV file with the following columns:
+Column Name	Description
+App_Name	Name of the Intune app
+App_Type	Type of the app (e.g., Win32, iOS, Android)
+App_Version	Version of the app
+App_Id	Unique identifier of the app
+App_LastUpdatedOn	Last modified date of the app
+MsEntra_Group_Name	Name of the Microsoft Entra (Azure AD) group assigned
+MsEntra_Group_ID	Object ID of the group
+App_Intent	Assignment intent (e.g., Required, Available, Uninstall)
+
+🛡️ Notes
+The script uses Microsoft Graph API to fetch data.
+Ensure you have the necessary API permissions (e.g., DeviceManagementApps.Read.All, Group.Read.All).
+Large environments may take a few minutes to process.
