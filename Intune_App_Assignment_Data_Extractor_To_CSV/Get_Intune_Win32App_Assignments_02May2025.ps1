@@ -45,7 +45,7 @@ Function Set-HostBackgroundColor
 Set-HostBackgroundColor -Color "Black"
 
 #Enter valid MS Entra Registered Application ID. 
-$Registered_Entra_App_ID = '10e09334-386b-4ff6-b113-c4abed2ea951'
+$Registered_Entra_App_ID = $NULL
 
 # Install MS Graph Intune Module and Connect to MS Graph for Authentication.
 Function Install-MSGraphIntuneModule 
@@ -151,10 +151,7 @@ Function Install-MSGraphIntuneModule
     }
 $Connect_To_Tenant = Install-MSGraphIntuneModule
 
-# Write-Host "`n"
-# $Location_To_Save_Csv_Report = $(Write-Host "Location to save Csv report (Ex: C:\Temp OR C:\IntuneReports) and Press Enter Key:" -f White; Read-Host)
 Write-Host "`n"
-
 
 # Prompt user for CSV report save location
 Do {
@@ -334,7 +331,7 @@ $Current_TimeZone = (Get-TimeZone).Id
 Write-Host "`n"
 $Message = "Data exported to CSV successfully by user name: '$($Connect_To_Tenant.User_UPN)' at $($Completion_Date_Time_Of_Ps_Code) $($Current_TimeZone)."
 Write-Host $Message -F Yellow
-Start-Sleep 5
+Start-Sleep 2
 
 #Lauch File explorer where HTML Report was saved.
 Start-Process $($Location_To_Save_Csv_Report)
