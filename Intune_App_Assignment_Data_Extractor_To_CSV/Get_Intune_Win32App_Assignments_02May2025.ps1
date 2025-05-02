@@ -224,7 +224,6 @@ Do {
                 $Win32AppDeployment.value | ForEach-Object {
                     $App_Counter ++
                     Write-Host "Processing Intune_Win32_App_Name: $($App_Counter). '$(($Name.DisplayName).ToUpper())' " -F Green
-                    # Write-Host "Processing Intune_Win32_App_Name: $($App_Counter). '$(($Name.DisplayName))' " -F Green
                     Write-Host "==================================================================="
                     $Name = $_
                     $AAD_Group_Names = If ($Name.Assignments) 
