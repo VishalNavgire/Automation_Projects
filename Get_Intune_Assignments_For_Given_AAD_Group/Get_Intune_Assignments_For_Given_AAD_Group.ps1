@@ -7,7 +7,7 @@
 
 .Requirement
     1. Microsoft Entra App needs to be registered in to your Tenant first with permission type as 'Delegated'. After you complete App's registration please 
-        update App's ID in the line no# 22 👉  $Registered_Entra_App_ID = "App ID". To read more on how to create / register an MS Entra App Id with Delegated rights - https://learn.microsoft.com/en-us/graph/auth-register-app-v2#register-an-application 
+        update App's ID in the line no# 52 👉  $Registered_Entra_App_ID = "App ID". To read more on how to create / register an MS Entra App Id with Delegated rights - https://learn.microsoft.com/en-us/graph/auth-register-app-v2#register-an-application 
     2. Set API Permission - 'DeviceManagementApps.Read.All'. To read more about this API permission - https://learn.microsoft.com/en-us/graph/permissions-reference#devicemanagementappsreadall
     3. Use an account that has Admin rights to run this script on a device.
     4. To interact with Intune's data, log in with an account that has sufficient permissions to read Assignments like Configuration Profiles, Apps, Compliance Policies, etc...
