@@ -1,5 +1,5 @@
 <#
-.Author         - Vishal Navgire 
+.Author         - Vishal Navgire [VishalNavgire54@Gmail.Com]
 .Company        - 
 .Created on     - 06-Feb-2025
 .Co-Author(s)   - 
@@ -11,12 +11,11 @@ Compares and displays common, uncommon Azure AD groups of two given users or win
 HTML report will be saved to 'C:\Temp\Compare_AAD_Groups'.
  
 Pre-reqs:
-    1. Use an account that has Admin rights to run this script on a Windows device.
-    2. To interact with Intune's data, log in with an account that has sufficient permissions to read User's or device's properties from Intune. 
-    3. Register an App in your tenant. Registering your application establishes a trust relationship between your app and the Microsoft identity platform. 
-       The trust is unidirectional: your app trusts the Microsoft identity platform, and not the other way around.
-       https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app?tabs=certificate#register-an-application
-    4. Update App id into line 72. Replace '$null' with actual application id registered into Azure AD teannt.
+    1. Microsoft Entra App needs to be registered in to your Tenant first with permission type as 'Delegated'. After you complete App's registration please 
+        update App's ID in the line no# 84 👉  $Registered_Entra_App_ID = "App ID". To read more on how to create / register an MS Entra App Id with Delegated rights - https://learn.microsoft.com/en-us/graph/auth-register-app-v2#register-an-application 
+    2. Set API Permission - 'DeviceManagementApps.Read.All'. To read more about this API permission - https://learn.microsoft.com/en-us/graph/permissions-reference#devicemanagementappsreadall
+    3. Use an account that has Admin rights to run this script on a device.
+    4. To interact with Intune's data, log in with an account that has sufficient permissions to read User's or device's properties from Intune. 
 
 Version Control:
     06-Feb-2025 : v1.0
@@ -57,6 +56,33 @@ Example: A user complains that they cannot establish a VPN connection to the cor
 ➡ Running this script will reveal whether the affected user is missing a required VPN access group, eliminating the need for extensive manual investigation.
 #>
 
+
+Function Set-HostBackgroundColor 
+{
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Color
+    )
+
+    Clear-Host
+    $Host.UI.RawUI.BackgroundColor = $Color
+    $SetBG_Colour = $Color
+
+    While ($Host.UI.RawUI.BackgroundColor -ne $SetBG_Colour) 
+        {
+            $Host.UI.RawUI.BackgroundColor = $Color
+            Start-Sleep -Seconds 5
+        }
+
+    Clear-Host
+    Start-Sleep 5
+}
+
+Set-HostBackgroundColor -Color "Black"
+
+#Enter valid MS Entra Registered Application ID. 
+$Registered_Entra_App_ID = $null
+
 # Install MS Graph Intune Module and Connect to MS Graph for Authentication.
 Function Install-MSGraphIntuneModule  
     {
@@ -69,7 +95,7 @@ Function Install-MSGraphIntuneModule
                     [string]$ApiVersion = "Beta",
 
                     [Parameter(Mandatory = $false)]
-                    $Application_Id = $Null
+                    $Application_Id = $Registered_Entra_App_ID
                 )
 
         # Clear-Host
