@@ -1,0 +1,14 @@
+
+# Intune Assignment Report Generator
+
+This PowerShell script automates the process of retrieving all types of Microsoft Intune assignments associated with a specified Azure Active Directory (AAD) group and generates a comprehensive HTML report.
+
+## 📌 Features
+
+- Accepts an AAD group name or ID as input
+- Fetches all types of Intune assignments:
+  - App assignments
+  - Configuration profiles
+  - Compliance policies
+  - Scripts
+  - Filters
