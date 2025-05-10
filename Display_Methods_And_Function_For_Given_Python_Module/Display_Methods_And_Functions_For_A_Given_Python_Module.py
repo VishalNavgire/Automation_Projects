@@ -22,6 +22,7 @@ Each module's log file is saved in the **same directory where the script is exec
 # 🛠️ Requirements
 
 - Python 3.6+
+- pip install -r requirements.txt
 
 '''
 
