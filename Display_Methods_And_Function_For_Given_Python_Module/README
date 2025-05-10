@@ -1,0 +1,22 @@
+# 🧰 Python Module Attribute & Method Logger
+
+This Python script dynamically imports one or more Python modules (built-in or third-party), lists all their attributes and methods, and logs them to a file with timestamped filenames.
+
+Each module's log file is saved in the **same directory where the script is executed**, including classification of each item as a **function** or an **attribute**.
+
+---
+
+## 📦 Features
+
+- Accepts **multiple module names** (e.g., `math os sys`).
+- Logs the **name, type (method/attribute)** of each item in the module.
+- Each module generates its own log file.
+- Logs are timestamped with local time and time zone.
+- Custom logging format with severity levels: INFO, ERROR, SUCCESS.
+
+---
+
+## 🛠️ Requirements
+
+- Python 3.6+
+- pip install -r requirements.txt
