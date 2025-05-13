@@ -16,6 +16,7 @@
         Sys temp folder consumed space in GB.
         User temp folder Consumed space in GB.
         Windows OS License Info.
+    IME agent would read these values and show on the 'Discovered Apps' on the Intune console.
 
 Pre-reqs:
 N/A
