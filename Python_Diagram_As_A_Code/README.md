@@ -73,23 +73,13 @@ This project demonstrates a **secure, enterprise-ready alternative** using:
 
 ---
 
-##📦 Technologies Used
-Microsoft Intune
-Windows PowerShell (Remediation Scripts)
-Azure Functions
-Microsoft Entra ID
-Azure Log Analytics
-Managed Identities
-Python
-diagrams (Graphviz-based)
+## 📦🚀 Technologies Used
+* **Endpoint Management:** Microsoft Intune (Remediation Scripts)
+* **Serverless:** Azure Functions (PowerShell Runtime)
+* **Identity:** Microsoft Entra ID & Managed Identities
+* **Analytics:** Azure Log Analytics (Log Ingestion API / DCR)
+* **Visualization:** Python `diagrams` (Graphviz-based)
 ---
-##🚀 Future Enhancements
-Payload schema validation
-Device compliance enforcement before ingestion
-Support for multiple inventory schemas
-Azure Monitor Data Collection Rules (DCR) integration
-KQL dashboards for inventory visualization
----
-##👤 Author
+## 👤 Author
 Vishal Navgire
 Cloud & Endpoint Automation Engineer
