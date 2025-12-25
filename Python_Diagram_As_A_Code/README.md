@@ -8,7 +8,7 @@ A proof-of-concept demonstrating a **secure, identity-validated pipeline** for c
 
 ## 📌 Why This Project Exists
 
-Many organizations ingest custom device inventory using:
+ Ingestion custom device inventory using:
 - Shared workspace keys
 - Blind trust in client-side scripts
 - Direct endpoint-to-Log Analytics access
@@ -73,14 +73,23 @@ This project demonstrates a **secure, enterprise-ready alternative** using:
 
 ---
 
-## 🧠 Why Python?
-
-Python is used here as **Architecture-as-Code**, not just scripting.
-
-Benefits:
-- Version-controlled architecture diagrams
-- Repeatable and reproducible visuals
-- Clear communication for security reviews and audits
-- Easy collaboration and review via GitHub
-
+##📦 Technologies Used
+Microsoft Intune
+Windows PowerShell (Remediation Scripts)
+Azure Functions
+Microsoft Entra ID
+Azure Log Analytics
+Managed Identities
+Python
+diagrams (Graphviz-based)
 ---
+##🚀 Future Enhancements
+Payload schema validation
+Device compliance enforcement before ingestion
+Support for multiple inventory schemas
+Azure Monitor Data Collection Rules (DCR) integration
+KQL dashboards for inventory visualization
+---
+##👤 Author
+Vishal Navgire
+Cloud & Endpoint Automation Engineer
