@@ -8,7 +8,7 @@ A proof-of-concept demonstrating a **secure, identity-validated pipeline** for c
 
 ## 📌 Why This Project Exists
 
-Many organizations ingest custom device inventory using:
+ Ingestion custom device inventory using:
 - Shared workspace keys
 - Blind trust in client-side scripts
 - Direct endpoint-to-Log Analytics access
@@ -73,14 +73,13 @@ This project demonstrates a **secure, enterprise-ready alternative** using:
 
 ---
 
-## 🧠 Why Python?
-
-Python is used here as **Architecture-as-Code**, not just scripting.
-
-Benefits:
-- Version-controlled architecture diagrams
-- Repeatable and reproducible visuals
-- Clear communication for security reviews and audits
-- Easy collaboration and review via GitHub
-
+## 📦🚀 Technologies Used
+* **Endpoint Management:** Microsoft Intune (Remediation Scripts)
+* **Serverless:** Azure Functions (PowerShell Runtime)
+* **Identity:** Microsoft Entra ID & Managed Identities
+* **Analytics:** Azure Log Analytics (Log Ingestion API / DCR)
+* **Visualization:** Python `diagrams` (Graphviz-based)
 ---
+## 👤 Author
+Vishal Navgire
+Cloud & Endpoint Automation Engineer
