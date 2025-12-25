@@ -7,9 +7,6 @@ from diagrams.azure.monitor import LogAnalyticsWorkspaces
 from diagrams.generic.os import Windows
 from diagrams.azure.general import Powershell
 
-# ----------------------------
-# High-Definition Styling
-# ----------------------------
 graph_attr = {
     "splines": "ortho",
     "pad": "0.6",                
