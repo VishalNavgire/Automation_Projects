@@ -12,13 +12,13 @@ from diagrams.azure.general import Powershell
 # ----------------------------
 graph_attr = {
     "splines": "ortho",
-    "pad": "0.6",                # Extra breathing room around the edges
-    "nodesep": "0.8",            # Space between nodes
-    "ranksep": "1.0",            # Space between tiers
+    "pad": "0.6",                
+    "nodesep": "0.8",            
+    "ranksep": "1.0",            
     "fontname": "Segoe UI Semibold",
-    "fontsize": "24",            # Larger title
+    "fontsize": "24",            
     "bgcolor": "white",
-    "dpi": "300",                # High-fidelity print quality
+    "dpi": "300",                
     "compound": "true",
 }
 
@@ -27,19 +27,19 @@ node_attr = {
     "fontsize": "13",
     "shape": "box",
     "style": "rounded,filled",
-    "fillcolor": "#F8FAFC",      # Light grey-blue tint for nodes
+    "fillcolor": "#F8FAFC",      
 }
 
 edge_attr = {
     "fontname": "Segoe UI Semibold",
     "fontsize": "11",
-    "color": "#475569",          # Slate grey for connector lines
+    "color": "#475569",          
 }
 
 # ----------------------------
 # Diagram Construction
 # ----------------------------
-# Use "svg" for infinite zoom or "png" for high-res image sharing
+
 with Diagram(
     "Secured Intune Custom Inventory Pipeline",
     direction="LR",
@@ -61,8 +61,6 @@ with Diagram(
         remediation = Powershell(
             "Remediation Script\n(Inventory Collection)"
         )
-
-        # Management relationship
         intune_cloud >> Edge(style="dashed", color="#0369A1", label="Deploy Script") >> win_device
         win_device >> Edge(color="#0284C7", penwidth="2.5", label="[1] Run Script") >> remediation
 
@@ -108,4 +106,4 @@ with Diagram(
         color="#16A34A", penwidth="2.5", label="[4] Ingest via Managed Identity"
     ) >> law
 
-print("Image generated successfully. Check your folder for 'secured_intune_custom_inventory_pipeline.png'")
+print("Image generated successfully. Check your folder for 'Secured_Intune_Managed_Win_Device_Custom_Inv.png'")
