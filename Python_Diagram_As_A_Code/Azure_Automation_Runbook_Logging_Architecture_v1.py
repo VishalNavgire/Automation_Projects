@@ -97,7 +97,7 @@ with Diagram(
         graph_attr={"bgcolor": "#F0FDF4", "color": "#15803D"},
     ):
         law = LogAnalyticsWorkspaces(
-            "Log Analytics Workspace\n(LOG-MEM-WE-P-001)"
+            "Log Analytics Workspace\n(LOG-Intune-009)"
         )
 
         custom_table = Blank(
