@@ -15,10 +15,10 @@ Native Azure Automation logging often faces critical scalability and observabili
 
 | ❌ Common Challenges | ✅ This Solution Solves |
 | :--- | :--- |
-| **Unstructured Logs:** "Job Stream" text is messy, difficult to query, and hard to parse. |
-| **Schema Rigidity:** Native tables (`AzureDiagnostics`) don't fit specific business reporting needs.
-| **Alert Fatigue:** No severity-aware routing; everything is just an "email." | **Smart Routing:** Routes alerts to specific **Teams Channels** (Info, Warn, Error) based on severity. 
-|**Zero Trust:** Uses **Managed Identity** for secure authentication across all hops.
+| **Unstructured Logs:** "Job Stream" text is messy, difficult to query, and hard to parse. | **Structured Ingestion:** Uses **DCR + Logs Ingestion API** for clean, queryable JSON schemas. |
+| **Schema Rigidity:** Native tables (`AzureDiagnostics`) don't fit specific business reporting needs. | **Custom Tables:** Writes to dedicated custom tables in Log Analytics Workspace (LAW). |
+| **Alert Fatigue:** No severity-aware routing; everything is just an "email." | **Smart Routing:** Routes alerts to specific **Teams Channels** (Info, Warn, Error) based on severity. |
+| **Insecure Auth:** Reliance on shared keys or inadequate IAM controls. | **Zero Trust:** Uses **Managed Identity** for secure authentication across all hops. |
 
 ---
 
@@ -87,3 +87,4 @@ This project serves as a technical showcase for:
 ## 👤 Author
 Vishal Navgire
 Cloud & Endpoint Automation Engineer
+
