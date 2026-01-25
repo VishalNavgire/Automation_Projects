@@ -1,9 +1,5 @@
-from diagrams.azure.identity import ActiveDirectory
-from diagrams.azure.management import EndpointManager
-from diagrams.azure.compute import Windows
-from diagrams.azure.web import AppService
-from diagrams.programming.framework import Streamlit
-
+from diagrams import Diagram, Cluster, Edge
+from urllib.request import urlretrieve
 import os
 
 # --- Reliable Standard Imports ---
@@ -19,19 +15,19 @@ from diagrams.custom import Custom
 # Icon Setup (The Fix)
 # ----------------------------
 # We download official icons to avoid "ImportError" on specific library versions
-# icon_urls = {
-#     "intune": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Microsoft_Intune_Icon.png/240px-Microsoft_Intune_Icon.png",
-#     "autopilot": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Windows_Autopilot_Icon.png",
-#     "entra_device": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Windows_Settings_app_icon.png/240px-Windows_Settings_app_icon.png"
-# }
+icon_urls = {
+    "intune": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Microsoft_Intune_Icon.png/240px-Microsoft_Intune_Icon.png",
+    "autopilot": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Windows_Autopilot_Icon.png",
+    "entra_device": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Windows_Settings_app_icon.png/240px-Windows_Settings_app_icon.png"
+}
 
-# # Download icons if they don't exist
-# for name, url in icon_urls.items():
-#     if not os.path.exists(f"{name}.png"):
-#         try:
-#             urlretrieve(url, f"{name}.png")
-#         except:
-#             print(f"Warning: Could not download {name} icon. Using default.")
+# Download icons if they don't exist
+for name, url in icon_urls.items():
+    if not os.path.exists(f"{name}.png"):
+        try:
+            urlretrieve(url, f"{name}.png")
+        except:
+            print(f"Warning: Could not download {name} icon. Using default.")
 
 # ----------------------------
 # Global Styling
@@ -85,13 +81,9 @@ with Diagram(
         
         with Cluster("Graph API Data"):
             # Using Custom Nodes for reliability
-            # entra_devices = Custom("Entra Registered\nDevices", "entra_device.png")
-            # intune = Custom("Intune Managed\nDevices", "intune.png")
-            # autopilot = Custom("Windows Autopilot\n(Identities)", "autopilot.png")
-            entra_devices = ActiveDirectory("Entra Registered\nDevices")
-            intune = EndpointManager("Intune Managed\nDevices")
-            autopilot = Windows("Windows Autopilot\n(Identities)")
-
+            entra_devices = Custom("Entra Registered\nDevices", "entra_device.png")
+            intune = Custom("Intune Managed\nDevices", "intune.png")
+            autopilot = Custom("Windows Autopilot\n(Identities)", "autopilot.png")
 
     # 3. Public Web Tier
     with Cluster("Public Internet", graph_attr={"bgcolor": "#F3F4F6", "color": "#9CA3AF"}):
@@ -106,11 +98,7 @@ with Diagram(
         local_cache = Storage("Local Cache\n(Parquet & Delta Tokens)")
         
         # The Output (Self-referencing the Python icon as the UI representation)
-        # dashboard_ui = Custom("Interactive\nDashboard", "intune.png") 
-
-        dashboard_ui = Streamlit("Interactive\nDashboard")
-        dashboard_ui = AppService("Interactive\nDashboard")
-        dashboard_ui = AppService("Interactive\nDashboard")
+        dashboard_ui = Custom("Interactive\nDashboard", "intune.png") 
 
     # ----------------------------
     # Data Flows (Edges)
