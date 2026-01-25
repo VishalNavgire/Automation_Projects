@@ -27,7 +27,7 @@ for name, url in icon_urls.items():
         try:
             urlretrieve(url, f"{name}.png")
         except:
-            print(f"Warning: Could not download {name} icon. Using default.")
+            print(f"Warning: Could not download {name} icon. Using default url {url}.")
 
 # ----------------------------
 # Global Styling
