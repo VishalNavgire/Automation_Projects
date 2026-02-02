@@ -117,22 +117,16 @@ def get_installed_apps():
 def collect_inventory():
     """Collects OS-independent system information."""
     
-    # 1. Hostname
     hostname = socket.gethostname()
     LOGGER.info(f"Hostname: {hostname}")
 
-    # 2. Domain / FQDN
-    # socket.getfqdn() works across OSs to find the Fully Qualified Domain Name
     fqdn = socket.getfqdn()
     LOGGER.info(f"Domain/FQDN: {fqdn}")
-
-    # 3. Free Disk Space (Root/C: drive)
-    # '/' works on Linux/Mac and is automatically translated to the system drive on Windows by psutil
+    
     disk = psutil.disk_usage('/')
     free_gb = round(disk.free / (1024**3), 2)
     LOGGER.info(f"Free Disk Space: {free_gb} GB")
 
-    # 4. List of User Profiles
     profiles = []
     if platform.system() == "Windows":
         profile_path = "C:\\Users"
