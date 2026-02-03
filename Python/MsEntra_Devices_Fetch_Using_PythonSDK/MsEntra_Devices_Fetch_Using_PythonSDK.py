@@ -49,7 +49,7 @@ TENANT_ID = input("Enter your Tenant ID: ").strip()
 
 if not CLIENT_ID or not TENANT_ID:
     LOGGER.warning("Missing CLIENT_ID or TENANT_ID. Execution halted.")
-    print("❌ warning: Both Client ID and Tenant ID are required.")
+    print("Warning: Both Client ID and Tenant ID are required.")
     exit()
 
 SCOPES = ["https://graph.microsoft.com/.default"]
@@ -64,7 +64,7 @@ result = app.acquire_token_interactive(scopes=SCOPES)
 try: 
 
     if "access_token" in result:
-        print("✅ Authentication Successful.")
+        print("Authentication Successful.")
         LOGGER.info("Authentication Successful")
         token = result['access_token']
         
@@ -75,21 +75,21 @@ try:
     #     print(f"2. Requesting: {url}")
     #     resp = requests.get(url, headers=headers)
         
-    #     print(f"🔹 HTTP Status Code: {resp.status_code}")
+    #     print(f"HTTP Status Code: {resp.status_code}")
         
     #     if resp.status_code == 200:
     #         data = resp.json()
     #         count = len(data.get('value', []))
-    #         print(f"✅ Success! Retrieved {count} devices.")
+    #         print(f"Success! Retrieved {count} devices.")
     #         print("Sample Data:", json.dumps(data.get('value', [])[0], indent=2))
     #     else:
-    #         print("❌ FAILED.")
+    #         print("FAILED.")
     #         print("Response:", resp.text)
     #         print("\nDIAGNOSIS:")
     #         if resp.status_code == 403:
     #             print("This is a PERMISSION issue. Your User/App Registration lacks 'Device.Read.All'.")
     # else:
-    #     print("❌ Authentication Failed:", result.get("error_description"))
+    #     print("Authentication Failed:", result.get("error_description"))
 
         # 1. Construct the EXACT URL used by your app
         base_url = "https://graph.microsoft.com/v1.0/devices/delta"
@@ -109,30 +109,30 @@ try:
         if resp.status_code == 200:
             data = resp.json()
             items = data.get("value", [])
-            print(f"✅ Success! Fetched {len(items)} items.")
-            LOGGER.info(f"✅ Success! Fetched {len(items)} items.")
+            print(f"Success! Fetched {len(items)} items.")
+            LOGGER.info(f"Success! Fetched {len(items)} items.")
             
             # 3. Test the Pandas conversion (where it might be crashing)
             if items:
                 try:
                     df = pd.json_normalize(items)
-                    print("✅ Pandas Conversion Success.")
-                    LOGGER.info("✅ Pandas Conversion Success.")
+                    print("Pandas Conversion Success.")
+                    LOGGER.info("Pandas Conversion Success.")
                     print(f"Columns found: {list(df.columns)}")
                     LOGGER.info(f"Columns found: {list(df.columns)}")
                     
                     # Check for the specific column that caused issues before
                     if "deviceId" in df.columns:
-                        print("✅ 'deviceId' column is present.")
-                        LOGGER.info("✅ 'deviceId' column is present.")
+                        print("'deviceId' column is present.")
+                        LOGGER.info("'deviceId' column is present.")
                     else:
-                        print("❌ WARNING: 'deviceId' column is MISSING.")
-                        LOGGER.warning("❌ WARNING: 'deviceId' column is MISSING.")
+                        print("WARNING: 'deviceId' column is MISSING.")
+                        LOGGER.warning("WARNING: 'deviceId' column is MISSING.")
                 except Exception as e:
-                    print(f"❌ Pandas Error: {e}")
-                    LOGGER.error(f"❌ Pandas Error: {e}")
+                    print(f"Pandas Error: {e}")
+                    LOGGER.error(f"Pandas Error: {e}")
         else:
-            print("❌ Request Failed!")
+            print("Request Failed!")
             print(f"Error Response: {resp.text}")
 
     else:
@@ -142,11 +142,11 @@ try:
         
         full_error = f"Auth Failed: {error_msg} | Description: {error_desc} | CorrelationID: {correlation_id}"
         LOGGER.error(full_error)
-        print(f"❌ {full_error}")
+        print(f"{full_error}")
         sys.exit(1)
         
 except Exception as e:
     # Captures unexpected errors (e.g., no internet, blocked port 8080)
-    LOGGER.error(f"💣 Unexpected System Error during Auth: {str(e)}")
-    print(f"❌ System Error: {e}")
+    LOGGER.error(f"Unexpected System Error during Auth: {str(e)}")
+    print(f"System Error: {e}")
     sys.exit(1)
