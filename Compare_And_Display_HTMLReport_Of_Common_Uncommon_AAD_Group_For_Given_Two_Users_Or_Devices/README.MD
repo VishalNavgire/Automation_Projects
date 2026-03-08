@@ -335,21 +335,6 @@ This tool follows secure operational practices:
 
 ---
 
-# 🚀 Future Enhancements
-
-Potential improvements for upcoming versions:
-
-* CSV / Excel report export
-* Multi-user comparison
-* Graph SDK migration
-* Azure Automation support
-* CI/CD integration
-* Device compliance comparison
-* Conditional Access analysis
-* Visual group dependency graph
-
----
-
 # 👨‍💻 Author
 
 ### Vishal Navgire
