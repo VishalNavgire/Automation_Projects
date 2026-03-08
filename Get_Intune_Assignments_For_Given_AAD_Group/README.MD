@@ -55,3 +55,59 @@ The result is a **centralized report that provides administrators with complete 
 # 🏗️ Architecture
 
 The script is organized into logical sections that handle authentication, Graph queries, assignment processing, and report generation.
+Intune-Group-Assignment-Reporter.ps1
+│
+├── Console Setup
+│ └── Set-HostBackgroundColor
+│
+├── Authentication
+│ └── Install-MSGraphIntuneModule
+│
+├── Group Discovery
+│ └── Retrieve Azure AD Groups
+│
+├── Intune Workload Queries
+│ ├── Win32 Applications
+│ ├── Device Configuration Profiles
+│ ├── Device Compliance Policies
+│ ├── Settings Catalog Policies
+│ ├── Administrative Templates
+│ ├── Platform Scripts
+│ └── Proactive Remediation Scripts
+│
+├── Graph Pagination Engine
+│ └── @odata.nextLink handling
+│
+├── Assignment Processing
+│ ├── Inclusion detection
+│ ├── Exclusion detection
+│ └── Assignment filter resolution
+│
+└── HTML Report Generator
+└── ConvertTo-HTML output
+
+---
+
+# 🛠 Prerequisites
+Before running the script ensure the following requirements are met.
+---
+## 1️⃣ PowerShell
+Recommended: PowerShell 5.1 
+---
+## 2️⃣ Microsoft Graph Intune Module
+The script automatically installs the required module if not present:
+Microsoft.Graph.Intune
+---
+
+## 3️⃣ Required Permissions
+
+The user running the script must have sufficient Microsoft Graph permissions such as:
+
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementManagedDevices.Read.All`
+- `Group.Read.All`
+- `Directory.Read.All`
+⚠️ Administrator consent may be required.
+
+
