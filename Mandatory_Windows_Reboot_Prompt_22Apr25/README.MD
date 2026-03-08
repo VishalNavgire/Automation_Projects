@@ -1,11 +1,3 @@
-This project comprises of the following files 📁:
-
-Copy&CreateTaskSchd.Ps1: Master code that copies required files to Intune managed endpoint and registers a new Task scheduler. 📋
-Custom_Win_Device_Reboot_GUI_Prompt_TaskSchd.xml: Contains configuration required to setup a new Scheduled task with timely triggers. ⏰
-Detect_Pending_Win_Device_Reboot_Status.ps1: Used to identify when the last time machine was rebooted, reads all events related to system reboot and captures it to a log file. 📝
-Windows_Device_Reboot_Prompt_Python_GUI.exe: Interactive GUI prompt to notify end user that it’s time to have their Windows device rebooted. 💻
-Delete&RemoveTaskSchd.Ps1: Used in removing/uninstalling the Win32 App. This Ps code deletes the Folder, Files, and Task scheduler that was created by ‘Copy&CreateTaskSchd.Ps1’. 🗑️
-
 
 <div align="center">
 
