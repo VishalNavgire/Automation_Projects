@@ -307,14 +307,6 @@ Potential improvements for future versions:
 
 Cloud & Endpoint Automation Engineer
 
-Specializing in:
-
-* Microsoft Intune
-* Endpoint Security
-* PowerShell Automation
-* Microsoft Graph
-* Enterprise Device Management
-
 ---
 
 <div align="center">
