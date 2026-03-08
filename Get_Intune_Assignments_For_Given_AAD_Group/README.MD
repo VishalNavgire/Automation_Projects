@@ -108,6 +108,7 @@ The user running the script must have sufficient Microsoft Graph permissions suc
 - `DeviceManagementManagedDevices.Read.All`
 - `Group.Read.All`
 - `Directory.Read.All`
-⚠️ Administrator consent may be required.
+
+⚠️ Tenant's Global Administrator consent may be required.
 
 
