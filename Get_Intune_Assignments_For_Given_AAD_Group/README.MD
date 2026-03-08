@@ -113,4 +113,17 @@ The user running the script must have sufficient Microsoft Graph permissions suc
 
 ⚠️ Tenant's Global Administrator consent may be required.
 
+---
 
+# 👨‍💻 Author
+
+### Vishal Navgire
+
+Cloud & Endpoint Automation Engineer
+
+![Azure](https://img.shields.io/badge/Azure-%230072C6.svg?style=for-the-badge\&logo=microsoftazure\&logoColor=white)
+![Microsoft Graph](https://img.shields.io/badge/Microsoft%20Graph-6264A7?style=for-the-badge\&logo=microsoft\&logoColor=white)
+![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?style=for-the-badge\&logo=powershell\&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3670A0?style=for-the-badge\&logo=python\&logoColor=ffdd54)
+
+---
