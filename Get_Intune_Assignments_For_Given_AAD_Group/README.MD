@@ -55,6 +55,8 @@ The result is a **centralized report that provides administrators with complete 
 # 🏗️ Architecture
 
 The script is organized into logical sections that handle authentication, Graph queries, assignment processing, and report generation.
+
+```
 Intune-Group-Assignment-Reporter.ps1
 │
 ├── Console Setup
@@ -85,7 +87,7 @@ Intune-Group-Assignment-Reporter.ps1
 │
 └── HTML Report Generator
 └── ConvertTo-HTML output
-
+```
 ---
 
 # 🛠 Prerequisites
