@@ -288,19 +288,6 @@ Confirm:
 
 ---
 
-# 🚀 Future Enhancements
-
-Potential improvements for future versions:
-
-* Intune compliance reporting
-* Centralized logging
-* Custom reboot policies per device group
-* Toast notification support
-* Multi-language GUI
-* Azure Monitor integration
-
----
-
 # 👨‍💻 Author
 
 **Vishal Navgire**
