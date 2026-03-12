@@ -241,7 +241,7 @@ intune-dashboard
 ├── README.md
 │
 ├── logs
-│   └── Win_Sec_Updates_Status.log
+│   └── Optimized_Windows_Security_Update_Status_Report_Prod.log
 │
 ├── .cache
 │   ├── intune_devices.parquet
