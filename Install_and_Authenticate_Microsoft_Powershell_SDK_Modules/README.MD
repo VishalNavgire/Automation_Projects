@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔧 Microsoft Graph Module Installer with Network Usage Tracking
+# Microsoft Graph Module Installer with Network Usage Tracking
 
 [![PowerShell](https://img.shields.io/badge/PowerShell-7%2B-5391FE?logo=powershell&logoColor=white)](https://learn.microsoft.com/powershell/)
 [![Microsoft Graph](https://img.shields.io/badge/Microsoft%20Graph-API-0078D4?logo=microsoft&logoColor=white)](https://developer.microsoft.com/en-us/graph)
