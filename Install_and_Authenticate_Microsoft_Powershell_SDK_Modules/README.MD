@@ -88,9 +88,9 @@ Install-MgGraph-WithUsageTracking.ps1
 │
 └── Authentication Validation
     └── Return True / False
----
-# 🛠 Prerequisites
 
+
+# 🛠 Prerequisites
 Before running the script ensure the following requirements are met.
 
 ##  1️⃣ PowerShell Version
