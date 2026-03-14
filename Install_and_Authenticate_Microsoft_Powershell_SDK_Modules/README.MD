@@ -88,7 +88,7 @@ Install-MgGraph-WithUsageTracking.ps1
 │
 └── Authentication Validation
     └── Return True / False
-
+---
 
 # 🛠 Prerequisites
 Before running the script ensure the following requirements are met.
