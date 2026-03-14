@@ -142,7 +142,6 @@ If ($Ms_Garph_Connection -eq $True)
         # $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
         Write-Host ("---" * 25) -F Yellow
         Write-Host "`nConnected to Microsoft Graph:`n" -ForegroundColor Green
-        Get-MgContext | Select-Object -Property Account, TenantId, ClientId, AppName | Format-List
+        Get-MgContext | Select-Object -Property Account, TenantId, ClientId, AppName, AuthType | Format-List
         Write-Host ("---" * 25) -F Yellow
-        #Parent folder to hold all Csv files.
     }
