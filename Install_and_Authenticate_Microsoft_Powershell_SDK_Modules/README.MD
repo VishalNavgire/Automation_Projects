@@ -15,7 +15,7 @@
 
 ---
 
-# 📖 Overview
+## 📖 Overview
 
 Microsoft 365 administrators frequently rely on **Microsoft Graph PowerShell modules** to interact with services such as:
 
@@ -43,185 +43,48 @@ The script is designed for:
 
 ---
 
-# ✨ Key Features
+## ✨ Key Features
 
 | Feature | Description |
 |------|-------------|
-| **Automated Module Installation** | Installs the Microsoft Graph PowerShell SDK automatically |
-| **Version Comparison** | Checks installed vs online module versions before installing |
-| **Network Usage Tracking** | Calculates total bandwidth used during installation |
-| **Administrator Validation** | Ensures the script runs with elevated privileges |
-| **Secure Authentication** | Uses Microsoft Graph delegated authentication |
-| **Error Handling** | Detects authentication failures and displays clear messages |
+| **Automated Module Installation** | Installs the Microsoft Graph PowerShell SDK automatically. |
+| **Version Comparison** | Checks installed vs. online module versions before installing. |
+| **Network Usage Tracking** | Calculates total bandwidth used during installation. |
+| **Administrator Validation** | Ensures the script runs with elevated privileges. |
+| **Secure Authentication** | Uses Microsoft Graph delegated authentication. |
+| **Error Handling** | Detects authentication failures and displays clear messages. |
 
 ---
 
-# 🏗️ Architecture
+## 🏗️ Architecture
 
-The script follows a structured execution flow.
+The script follows a structured execution flow:
 
-
+```text
 Install-MgGraph-WithUsageTracking.ps1
 │
 ├── Parameter Input
-│ ├── Tenant ID
-│ └── Enterprise App ID
+│   ├── Tenant ID
+│   └── Enterprise App ID
 │
 ├── Administrator Validation
-│ └── Ensure script runs with elevated privileges
+│   └── Ensure script runs with elevated privileges
 │
 ├── Network Usage Tracking
-│ └── Capture adapter statistics before installation
+│   └── Capture adapter statistics before installation
 │
 ├── Module Version Check
-│ ├── Get Installed Version
-│ └── Get Online Version
+│   ├── Get Installed Version
+│   └── Get Online Version
 │
 ├── Module Installation
-│ └── Install-Module Microsoft.Graph
+│   └── Install-Module Microsoft.Graph
 │
 ├── Network Consumption Calculation
-│ └── Display MB / GB used
+│   └── Display MB / GB used
 │
 ├── Microsoft Graph Authentication
-│ └── Connect-MgGraph
+│   └── Connect-MgGraph
 │
 └── Authentication Validation
-└── Return True / False
-
-
----
-
-# 🛠 Prerequisites
-
-Before running the script ensure the following requirements are met.
-
----
-
-## 1️⃣ PowerShell Version
-
-⚠️ **This script only supports PowerShell 7 or newer**
-
-Check your PowerShell version:
-
-```powershell
-$PSVersionTable.PSVersion
-
-Download PowerShell 7:
-
-https://learn.microsoft.com/powershell/scripting/install/installing-powershell
-
-2️⃣ Administrator Privileges
-
-The script must be executed using Run as Administrator.
-
-3️⃣ Microsoft Entra App Registration
-
-Create an Enterprise Application in your Microsoft Entra tenant.
-
-Assign the following Delegated Permission:
-
-DeviceManagementManagedDevices.Read.All
-
-You will need the following values:
-
-Parameter	Description
-Tenant ID	Azure Tenant ID
-Enterprise App ID	Application (Client) ID
-📦 Installed Modules
-
-Running this script installs the Microsoft Graph PowerShell SDK, which includes the following modules:
-
-Microsoft.Graph
-Microsoft.Graph.Applications
-Microsoft.Graph.Authentication
-Microsoft.Graph.BackupRestore
-Microsoft.Graph.Beta.DeviceManagement
-Microsoft.Graph.Bookings
-Microsoft.Graph.Calendar
-Microsoft.Graph.ChangeNotifications
-Microsoft.Graph.CloudCommunications
-Microsoft.Graph.Compliance
-Microsoft.Graph.CrossDeviceExperiences
-Microsoft.Graph.DeviceManagement
-Microsoft.Graph.DeviceManagement.Administration
-Microsoft.Graph.DeviceManagement.Enrollment
-Microsoft.Graph.DeviceManagement.Functions
-Microsoft.Graph.Devices.CloudPrint
-Microsoft.Graph.Devices.CorporateManagement
-Microsoft.Graph.Devices.ServiceAnnouncement
-Microsoft.Graph.DirectoryObjects
-Microsoft.Graph.Education
-Microsoft.Graph.Files
-Microsoft.Graph.Groups
-Microsoft.Graph.Identity.DirectoryManagement
-Microsoft.Graph.Identity.Governance
-Microsoft.Graph.Identity.Partner
-Microsoft.Graph.Identity.SignIns
-Microsoft.Graph.Mail
-Microsoft.Graph.Notes
-Microsoft.Graph.People
-Microsoft.Graph.PersonalContacts
-Microsoft.Graph.Planner
-Microsoft.Graph.Reports
-Microsoft.Graph.SchemaExtensions
-Microsoft.Graph.Search
-Microsoft.Graph.Security
-Microsoft.Graph.Sites
-Microsoft.Graph.Teams
-Microsoft.Graph.Users
-Microsoft.Graph.Users.Actions
-Microsoft.Graph.Users.Functions
-
-These modules enable administrators to interact with various Microsoft 365 services via Microsoft Graph API.
-
-🚀 Execution Guide
-Step 1 — Open PowerShell as Administrator
-
-Search for PowerShell 7 and select:
-
-Run as Administrator
-Step 2 — Execute the Script
-.\Install-MgGraph-WithUsageTracking.ps1
-Step 3 — Provide Required Parameters
-
-The script will prompt for:
-
-Tenant ID
-Enterprise App ID
-
-Example:
-
-Enter your Tenant ID
-Enter your Enterprise App ID
-Step 4 — Authentication
-
-The script will initiate Microsoft Graph authentication.
-
-After successful authentication the script returns:
-
-True
-
-If authentication fails:
-
-Failed to connect to Microsoft Graph.
-📊 Example Output
-Installing or updating Microsoft.Graph module...
-
-Data consumed for Microsoft.Graph module installation:
-54.21 MB / 0.05 GB
-
-Authentication with Microsoft Graph is in progress...
-🔐 Security Notes
-
-This script uses Delegated Authentication via Microsoft Graph.
-
-This means:
-
-Access is performed on behalf of the authenticated user
-
-The script cannot exceed the user's permissions
-
-Conditional Access and MFA policies remain enforced
-
-No credentials are stored locally.
+    └── Return True / False
