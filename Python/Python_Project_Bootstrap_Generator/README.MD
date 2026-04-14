@@ -111,12 +111,6 @@ git --version
 # ⬇️ Installation
 
 ### Option 1: Clone Repository
-
-```bash
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
-```
-
 ---
 
 ### Option 2: Download ZIP
