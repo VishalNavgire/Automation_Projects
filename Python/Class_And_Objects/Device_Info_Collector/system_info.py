@@ -139,6 +139,22 @@ class SystemInfoCollector:
         except Exception as e:
             logging.error(f"Process info failed: {e}")
 
+    def collect_windows_intune_reg_info(self):
+        if not self.is_windows:
+            return
+        try:
+            import winreg
+            data = {}
+
+            path = r"SOFTWARE\Microsoft\Enrollments"
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path) as key:
+                count = winreg.QueryInfoKey(key)[0]
+                data["Enrollments"] = [winreg.EnumKey(key, i) for i in range(count)]
+            self.system_data['Windows'] = data
+            
+        except Exception as e:
+            logging.error(f"Windows info failed: {e}")
+
     def display_report(self):
         """Prints a formatted report to the console."""
         print("="*20, "System Information Report", "="*20)
