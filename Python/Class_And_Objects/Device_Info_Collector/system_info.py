@@ -151,9 +151,28 @@ class SystemInfoCollector:
                 count = winreg.QueryInfoKey(key)[0]
                 data["Enrollments"] = [winreg.EnumKey(key, i) for i in range(count)]
             self.system_data['Windows'] = data
-            
+
         except Exception as e:
             logging.error(f"Windows info failed: {e}")
+
+    def collect_linux_reg_info(self):
+        if not self.is_linux:
+            return
+        try:
+            data = {}
+
+            # OS release
+            if os.path.exists("/etc/os-release"):
+                with open("/etc/os-release") as f:
+                    data["Distro"] = f.read()
+            # Load avg
+            load1, load5, load15 = os.getloadavg()
+            data["Load Avg"] = f"{load1}, {load5}, {load15}"
+
+            self.system_data['Linux'] = data
+
+        except Exception as e:
+            logging.error(f"Linux info failed: {e}")
 
     def display_report(self):
         """Prints a formatted report to the console."""
