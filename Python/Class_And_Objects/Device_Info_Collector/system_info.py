@@ -109,6 +109,24 @@ class SystemInfoCollector:
         except Exception as e:
             logging.error(f"Network info failed: {e}")
 
+    def collect_boot_time(self):
+        try:
+            if self.is_windows:
+                win_time_format = '%a %b %d %I:%M:%S %p %Z %Y'
+                boot = datetime.fromtimestamp(psutil.boot_time())
+                self.system_data['Boot'] = {
+                    "Boot Time": boot.strftime(win_time_format)
+                }
+            else:
+                linux_time_format = "%a %b %d %I:%M:%S %p %Z %Y %Z"
+                boot = datetime.fromtimestamp(psutil.boot_time())
+                self.system_data['Boot'] = {
+                    "Boot Time": boot.strftime(linux_time_format)
+                }
+
+        except Exception as e:
+            logging.error(f"Boot info failed: {e}")
+
     def display_report(self):
         """Prints a formatted report to the console."""
         print("="*20, "System Information Report", "="*20)
