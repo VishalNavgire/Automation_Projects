@@ -207,7 +207,7 @@ class SystemInfoCollector:
 
 
     def collect_all(self):
-        logging.info("Starting scan...")
+        logging.info("Starting scan...\n")
         self.collect_os_info()
         logging.info("Completed 'collect_os_info()'.\n")
         self.collect_cpu_info()
@@ -222,11 +222,11 @@ class SystemInfoCollector:
         logging.info("Completed 'collect_boot_time()'.\n")
         self.collect_top_processes()
         logging.info("Completed 'collect_top_processes()'.\n")
-        self.collect_windows_info()
-        logging.info("Completed 'collect_windows_info()'.\n")
-        self.collect_linux_info()
-        logging.info("Completed 'collect_linux_info()'.\n")
-        logging.info("Scan complete.")
+        self.collect_windows_intune_reg_info()
+        logging.info("Completed 'collect_windows_intune_reg_info()'.\n")
+        self.collect_linux_reg_info
+        logging.info("Completed 'collect_linux_reg_info'.\n")
+        logging.info("Scan complete.\n")
 
     # def export_to_json(self, filename=None):
     #     try:
