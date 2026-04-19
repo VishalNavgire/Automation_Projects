@@ -23,13 +23,13 @@ class SystemInfoCollector:
         self.is_linux = platform.system() == "Linux"
 
     @staticmethod
-    def get_size(bytes, suffix="B"):
+    def get_size(num_bytes, suffix="B"):
         """Scales bytes to a human-readable format (e.g., GB, MB)."""
         factor = 1024
         for unit in ["", "K", "M", "G", "T", "P"]:
-            if bytes < factor:
-                return f"{bytes:.2f}{unit}{suffix}"
-            bytes /= factor
+            if num_bytes < factor:
+                return f"{num_bytes:.2f}{unit}{suffix}"
+            num_bytes/= factor
 
     def collect_os_info(self):
         """Gathers OS and Platform details."""
