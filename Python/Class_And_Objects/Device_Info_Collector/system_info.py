@@ -174,26 +174,26 @@ class SystemInfoCollector:
         except Exception as e:
             logging.error(f"Linux info failed: {e}")
 
-    def display_report(self):
-        """Prints a formatted report to the console."""
-        print("="*20, "System Information Report", "="*20)
-        for category, metrics in self.system_data.items():
-            # print(f"categoryname is:{category} and its type is type{type(category)}\n")
-            # print(f"metricname is: {metrics} and its type is type{type(metrics)}\n")
-            print(f"\n[+] {category}")
+    # def display_report(self):
+    #     """Prints a formatted report to the console."""
+    #     print("="*20, "System Information Report", "="*20)
+    #     for category, metrics in self.system_data.items():
+    #         # print(f"categoryname is:{category} and its type is type{type(category)}\n")
+    #         # print(f"metricname is: {metrics} and its type is type{type(metrics)}\n")
+    #         print(f"\n[+] {category}")
             
-            # Check if metrics is a list (used for Disks)
-            if isinstance(metrics, list):
-                for item in metrics:
-                    print(f"    --- Partition: {item.get('Mountpoint')} ---")
-                    for key, value in item.items():
-                        print(f"        {key:15}: {value}")
+    #         # Check if metrics is a list (used for Disks)
+    #         if isinstance(metrics, list):
+    #             for item in metrics:
+    #                 print(f"    --- Partition: {item.get('Mountpoint')} ---")
+    #                 for key, value in item.items():
+    #                     print(f"        {key:15}: {value}")
             
-            # If it's a dictionary (used for OS, CPU, Memory)
-            else:
-                for key, value in metrics.items():
-                    print(f"    {key:15}: {value}")
-        print("\n" + "="*67)
+    #         # If it's a dictionary (used for OS, CPU, Memory)
+    #         else:
+    #             for key, value in metrics.items():
+    #                 print(f"    {key:15}: {value}")
+    #     print("\n" + "="*67)
 
     # def collect_all(self):
     #     """Execution controller for full telemetry gathering."""
@@ -228,20 +228,48 @@ class SystemInfoCollector:
         logging.info("Completed 'collect_linux_info()'.\n")
         logging.info("Scan complete.")
 
+    # def export_to_json(self, filename=None):
+    #     try:
+    #         if not filename:
+    #             hostname = self.system_data.get("OS", {}).get("Node Name", "unknown")
+    #             filename = f"{hostname}_report.json"
+
+    #         with open(filename, 'w') as f:
+    #             json.dump(self.system_data, f, indent=4)
+
+    #         logging.info(f"Saved: {filename}")
+
+    #     except Exception as e:
+    #         logging.error(f"Export failed: {e}")
+
+
+    # ---------------- DISPLAY ----------------
+    def display_report(self):
+        print("="*20, "System Report", "="*20)
+        for k, v in self.system_data.items():
+            print(f"\n[+] {k}")
+            if isinstance(v, list):
+                for item in v:
+                    print(f"  {item}")
+            elif isinstance(v, dict):
+                for key, val in v.items():
+                    print(f"  {key:15}: {val}")
+        print("="*60)
+
+    # ---------------- EXPORT ----------------
     def export_to_json(self, filename=None):
         try:
             if not filename:
-                hostname = self.system_data.get("OS", {}).get("Node Name", "unknown")
-                filename = f"{hostname}_report.json"
+                name = self.system_data.get("OS", {}).get("Node Name", "system")
+                filename = f"{name}_report.json"
 
-            with open(filename, 'w') as f:
+            with open(filename, "w") as f:
                 json.dump(self.system_data, f, indent=4)
 
             logging.info(f"Saved: {filename}")
-
         except Exception as e:
             logging.error(f"Export failed: {e}")
-
+            
 # --- Execution ---
 if __name__ == "__main__":
     # Instantiate the class
