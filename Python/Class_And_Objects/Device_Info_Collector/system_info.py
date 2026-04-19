@@ -195,14 +195,37 @@ class SystemInfoCollector:
                     print(f"    {key:15}: {value}")
         print("\n" + "="*67)
 
+    # def collect_all(self):
+    #     """Execution controller for full telemetry gathering."""
+    #     logging.info("Initiating full system scan...")
+    #     self.collect_os_info()
+    #     self.collect_cpu_info()
+    #     self.collect_memory_info()
+    #     self.collect_disk_info()
+    #     # self.collect_network_info()
+    #     logging.info("Scan complete.")
+
+
     def collect_all(self):
-        """Execution controller for full telemetry gathering."""
-        logging.info("Initiating full system scan...")
+        logging.info("Starting scan...")
         self.collect_os_info()
+        logging.info("Completed 'collect_os_info()'.\n")
         self.collect_cpu_info()
+        logging.info("Completed 'collect_cpu_info()'.\n")
         self.collect_memory_info()
+        logging.info("Completed 'collect_memory_info()'.\n")
         self.collect_disk_info()
-        # self.collect_network_info()
+        logging.info("Completed 'collect_disk_info()'.\n")
+        self.collect_network_info()
+        logging.info("Completed 'collect_network_info()'.\n")
+        self.collect_boot_time()
+        logging.info("Completed 'collect_boot_time()'.\n")
+        self.collect_top_processes()
+        logging.info("Completed 'collect_top_processes()'.\n")
+        self.collect_windows_info()
+        logging.info("Completed 'collect_windows_info()'.\n")
+        self.collect_linux_info()
+        logging.info("Completed 'collect_linux_info()'.\n")
         logging.info("Scan complete.")
 
     def export_to_json(self, filename=None):
