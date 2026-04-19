@@ -92,6 +92,23 @@ class SystemInfoCollector:
 
         self.system_data['Disk'] = disk_info
 
+    def collect_network_info(self):
+        try:
+            interfaces = psutil.net_if_addrs()
+            stats = psutil.net_io_counters()
+
+            net_data = {
+                "Hostname": socket.gethostname(),
+                "IP Address": socket.gethostbyname(socket.gethostname()),
+                "Data Sent": self.get_size(stats.bytes_sent),
+                "Data Received": self.get_size(stats.bytes_recv),
+                "Interfaces": list(interfaces.keys())
+            }
+
+            self.system_data['Network'] = net_data
+        except Exception as e:
+            logging.error(f"Network info failed: {e}")
+
     def display_report(self):
         """Prints a formatted report to the console."""
         print("="*20, "System Information Report", "="*20)
