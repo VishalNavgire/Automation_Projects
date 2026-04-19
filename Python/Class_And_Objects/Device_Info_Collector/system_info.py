@@ -4,7 +4,7 @@ import json
 import logging
 import socket
 import os
-import subprocess
+# import subprocess
 from datetime import datetime
 from typing import Dict, Any
 
@@ -269,7 +269,7 @@ class SystemInfoCollector:
             logging.info(f"Saved: {filename}")
         except Exception as e:
             logging.error(f"Export failed: {e}")
-            
+
 # --- Execution ---
 if __name__ == "__main__":
     # Instantiate the class
