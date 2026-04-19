@@ -127,6 +127,18 @@ class SystemInfoCollector:
         except Exception as e:
             logging.error(f"Boot info failed: {e}")
 
+
+    def collect_top_processes(self, limit=5):
+        try:
+            processes = []
+            for proc in psutil.process_iter(['pid', 'name', 'cpu_percent']):
+                processes.append(proc.info)
+
+            top = sorted(processes, key=lambda x: x['cpu_percent'], reverse=True)[:limit]
+            self.system_data['Top Processes'] = top
+        except Exception as e:
+            logging.error(f"Process info failed: {e}")
+
     def display_report(self):
         """Prints a formatted report to the console."""
         print("="*20, "System Information Report", "="*20)
