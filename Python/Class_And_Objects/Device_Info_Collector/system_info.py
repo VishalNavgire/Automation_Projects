@@ -19,6 +19,8 @@ class SystemInfoCollector:
 
     def __init__(self):
         self.system_data: Dict[str, Any] = {}
+        self.is_windows = platform.system() == "Windows"
+        self.is_linux = platform.system() == "Linux"
 
     @staticmethod
     def get_size(bytes, suffix="B"):
