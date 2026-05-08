@@ -1,3 +1,17 @@
+Function Test-IsAdmin 
+    {
+        try 
+            {
+                $id = [Security.Principal.WindowsIdentity]::GetCurrent()
+                $p  = New-Object Security.Principal.WindowsPrincipal($id)
+                return $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+            } 
+        catch 
+            {
+                return $false
+            }
+    }
+
 Function Install-MgGraph-WithUsageTracking
     {
         <#
@@ -85,11 +99,11 @@ Function Install-MgGraph-WithUsageTracking
             }
 
         # Ensure script is running as Administrator
-        If (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
-            {
-                Write-Error "Please run this script as Administrator."
-                return
-            }
+        # If (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
+        #     {
+        #         Write-Error "Please run this script as Administrator."
+        #         return
+        #     }
         # Record network usage before operation
         $BeforeUsage = Get-NetworkUsage
         # Check Microsoft.Graph module status
