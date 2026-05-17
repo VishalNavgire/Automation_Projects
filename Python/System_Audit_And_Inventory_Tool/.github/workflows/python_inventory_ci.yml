@@ -1,0 +1,70 @@
+name: Python Inventory CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+
+  inventory-test:
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+    # ----------------------------------------------------------
+    # Step 1 - Download Repository Code into Runner
+    # ----------------------------------------------------------
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    # ----------------------------------------------------------
+    # Step 2 - Install Python
+    # ----------------------------------------------------------
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    # ----------------------------------------------------------
+    # Step 3 - Install Required Python Libraries
+    # ----------------------------------------------------------
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install psutil tzlocal pytest
+
+    # ----------------------------------------------------------
+    # Step 4 - Validate Python Syntax
+    # ----------------------------------------------------------
+    - name: Run Python Syntax Check
+      run: |
+        python -m py_compile System_Audit_And_Inventory_Tool.py
+
+    # ----------------------------------------------------------
+    # Step 5 - Run Basic Import Test
+    # ----------------------------------------------------------
+    - name: Test Python Imports
+      run: |
+        python -c "import psutil, tzlocal"
+
+    # ----------------------------------------------------------
+    # Step 6 - Execute Inventory Script
+    # ----------------------------------------------------------
+    - name: Run Inventory Collection Script
+      run: |
+        python System_Audit_And_Inventory_Tool.py
+
+    # ----------------------------------------------------------
+    # Step 7 - Upload Logs as Artifacts
+    # ----------------------------------------------------------
+    - name: Upload Logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: logs-${{ matrix.os }}
+        path: logs/
