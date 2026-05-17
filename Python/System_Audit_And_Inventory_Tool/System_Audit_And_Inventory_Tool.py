@@ -157,7 +157,7 @@ def collect_inventory():
 def main():
     LOGGER.info("--- Starting OS-Independent Inventory Collection ---")
     data = collect_inventory()
-    data
+    LOGGER.info(json.dumps(data, indent=4))
     LOGGER.info("--- Collection Complete ---")
 
 if __name__ == "__main__":
