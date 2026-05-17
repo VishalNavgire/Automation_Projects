@@ -1,8 +1,19 @@
 name: Python Inventory CI
 
 on:
+  # ----------------------------------------------------------
+  # Run Automatically When Files Change in This Project Folder
+  # ----------------------------------------------------------
   push:
+    paths:
+      - 'Python/System_Audit_And_Inventory_Tool/**' #Only trigger workflow if files inside this project change.
   pull_request:
+    paths:
+      - 'Python/System_Audit_And_Inventory_Tool/**' #Only trigger workflow if files inside this project change.
+
+  # ----------------------------------------------------------
+  # Allow Manual Execution
+  # ----------------------------------------------------------
   workflow_dispatch:
 
 jobs:
@@ -14,6 +25,13 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
+
+    # ----------------------------------------------------------
+    # Set Default Working Directory
+    # ----------------------------------------------------------
+    defaults:
+      run:
+        working-directory: Python/System_Audit_And_Inventory_Tool
 
     steps:
 
