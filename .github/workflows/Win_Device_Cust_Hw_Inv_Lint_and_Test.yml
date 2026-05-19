@@ -1,0 +1,62 @@
+name: PowerShell_Endpoint_Custom_Hw_Inv_Script CI (Lint & Test)
+
+on:
+  pull_request:
+    branches: [ main ]
+    # The pipeline will ONLY run if files inside this specific folder are changed in the Pull Request.
+    paths:
+      - 'Win_Device_Custom_Hw_Attribute_Collection/**'
+      
+  workflow_dispatch: # Enables the manual "Run workflow" button in GitHub UI
+
+permissions:
+  contents: read
+
+jobs:
+  validate_and_test:
+    name: Code Quality & Unit Testing
+    runs-on: windows-latest  # For native CIM/WMI schema rendering checks
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Create Artifacts Directory
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path ./Pipeline-Logs
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+          
+          # Scans specific folder/s instead of the whole repo
+          $Results = Invoke-ScriptAnalyzer -Path ./Win_Device_Custom_Hw_Attribute_Collection -Recurse -Severity Error, Warning
+          
+          # For the artifact upload
+          $Results | Out-File -FilePath "./Pipeline-Logs/PSScriptAnalyzer-Results.log"
+          
+          if ($Results) {
+              $Results | Format-Table
+              Write-Error "PSScriptAnalyzer found code quality errors or safety violations."
+              exit 1
+          } else {
+              Write-Output "✔ Script Analyzer checks passed cleanly!" | Out-File -FilePath "./Pipeline-Logs/PSScriptAnalyzer-Results.log" -Append
+          }
+
+      - name: Execute Pester Infrastructure Mocks
+        shell: pwsh
+        if: always() # Ensures Pester runs even if PSScriptAnalyzer throws a warning
+        run: |
+          Install-Module -Name Pester -Force -Scope CurrentUser
+          
+          # Only tests specific folder
+          Invoke-Pester -Path ./Win_Device_Custom_Hw_Attribute_Collection -OutputFile "./Pipeline-Logs/Pester-Results.xml" -OutputFormat NUnitXml -EnableExit
+
+      - name: Upload Pipeline Logs and Artifacts
+        uses: actions/upload-artifact@v4
+        if: always() # CRITICAL: Uploads the logs even if the pipeline fails
+        with:
+          name: powershell-pipeline-logs
+          path: ./Pipeline-Logs/
+          retention-days: 14
