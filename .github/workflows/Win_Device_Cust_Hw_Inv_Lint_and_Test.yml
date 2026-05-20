@@ -73,8 +73,9 @@ jobs:
               # Start transcript logging
               Start-Transcript -Path $TranscriptPath
       
-              # Execute production script
-              ./Win_Device_Custom_Hw_Attribute_Collection/Intune_Win_Device_Custom_Hw_Attribute_Collection.ps1
+              # Execute production script safely
+            ./Win_Device_Custom_Hw_Attribute_Collection/Intune_Win_Device_Custom_Hw_Attribute_Collection.ps1 `
+              -SkipRegistryWrite
       
               Write-Host "Inventory collection completed successfully."
       
