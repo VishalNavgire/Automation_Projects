@@ -53,7 +53,41 @@ jobs:
           
           # Only tests specific folder
           # Invoke-Pester -Path ./Win_Device_Custom_Hw_Attribute_Collection -OutputFile "./Pipeline-Logs/Pester-Results.xml" -OutputFormat NUnitXml -EnableExit
+      - name: Execute Production Hardware Inventory Script
+        shell: pwsh
+        run: |
+      
+          try {
+      
+              Write-Host "Starting inventory collection..."
+      
+              # Create logs directory
+              New-Item -ItemType Directory -Force -Path ./Pipeline-Logs
+      
+              # Generate timestamp
+              $DateTimeFormat = Get-Date -Format "ddMMMyyyy_h_mm_ss_tt"
+      
+              # Transcript log path
+              $TranscriptPath = "./Pipeline-Logs/InventoryExecution_$DateTimeFormat.log"
 
+              # Start transcript logging
+              Start-Transcript -Path $TranscriptPath
+      
+              # Execute production script
+              ./Win_Device_Custom_Hw_Attribute_Collection/Intune_Win_Device_Custom_Hw_Attribute_Collection.ps1
+      
+              Write-Host "Inventory collection completed successfully."
+      
+              Stop-Transcript
+          }
+          catch {
+      
+              Write-Error "Inventory execution failed: $_"
+      
+              Stop-Transcript
+      
+              exit 1
+          }
       - name: Upload Pipeline Logs and Artifacts
         uses: actions/upload-artifact@v4
         if: always() # CRITICAL: Uploads the logs even if the pipeline fails
