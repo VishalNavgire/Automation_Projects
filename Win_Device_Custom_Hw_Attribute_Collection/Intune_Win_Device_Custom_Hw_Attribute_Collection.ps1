@@ -25,6 +25,9 @@ Version Control:
  12-May-2025 :: v1.0
 #>
 
+param(
+    [switch]$SkipRegistryWrite                                           
+)
 Function Invoke-LocalAdminMembers 
     {
         <#
@@ -377,7 +380,14 @@ $Custom_Hw_Inventory = @{
                         }
 
 
-ForEach ($CustomHwInv in $Custom_Hw_Inventory.GetEnumerator())
+If (-not $SkipRegistryWrite) 
     {
-        Set-CustomHwInventory -Name $($CustomHwInv.Name) -Value $($CustomHwInv.Value -Join "; ")
+        ForEach ($CustomHwInv in $Custom_Hw_Inventory.GetEnumerator())
+            {
+                Set-CustomHwInventory -Name $($CustomHwInv.Name) -Value $($CustomHwInv.Value -Join "; ")
+            }
+    }             
+Else 
+    {
+        Write-Host "Registry write skipped due to -SkipRegistryWrite parameter."
     }
