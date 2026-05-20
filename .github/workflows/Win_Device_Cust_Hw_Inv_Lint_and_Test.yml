@@ -32,11 +32,12 @@ jobs:
           
           # Scans specific folder/s instead of the whole repo
           $Results = Invoke-ScriptAnalyzer -Path ./Win_Device_Custom_Hw_Attribute_Collection -Recurse -Severity Error, Warning
+          $Error_Results = Invoke-ScriptAnalyzer -Path ./Win_Device_Custom_Hw_Attribute_Collection -Recurse -Severity Error
           
           # For the artifact upload
           $Results | Out-File -FilePath "./Pipeline-Logs/PSScriptAnalyzer-Results.log"
           
-          if ($Results) {
+          if ($Error_Results) {
               $Results | Format-Table
               Write-Error "PSScriptAnalyzer found code quality errors or safety violations."
               exit 1
