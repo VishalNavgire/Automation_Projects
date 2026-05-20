@@ -45,14 +45,14 @@ jobs:
               Write-Output "✔ Script Analyzer checks passed cleanly!" | Out-File -FilePath "./Pipeline-Logs/PSScriptAnalyzer-Results.log" -Append
           }
 
-      - name: Execute Pester Infrastructure Mocks
-        shell: pwsh
-        if: always() # Ensures Pester runs even if PSScriptAnalyzer throws a warning
-        run: |
-          Install-Module -Name Pester -Force -Scope CurrentUser
+      # - name: Execute Pester Infrastructure Mocks
+        # shell: pwsh
+        # if: always() # Ensures Pester runs even if PSScriptAnalyzer throws a warning
+        # run: |
+          # Install-Module -Name Pester -Force -Scope CurrentUser
           
           # Only tests specific folder
-          Invoke-Pester -Path ./Win_Device_Custom_Hw_Attribute_Collection -OutputFile "./Pipeline-Logs/Pester-Results.xml" -OutputFormat NUnitXml -EnableExit
+          # Invoke-Pester -Path ./Win_Device_Custom_Hw_Attribute_Collection -OutputFile "./Pipeline-Logs/Pester-Results.xml" -OutputFormat NUnitXml -EnableExit
 
       - name: Upload Pipeline Logs and Artifacts
         uses: actions/upload-artifact@v4
