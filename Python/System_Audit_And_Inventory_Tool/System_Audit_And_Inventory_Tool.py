@@ -148,7 +148,7 @@ def collect_inventory():
     return {
         "hostname": hostname,
         "fqdn": fqdn,
-        "free_space": free_gb,
+        "free_space": f"{free_gb} GB",
         "profiles": profiles,
         "updates": updates,
         "applications": apps
