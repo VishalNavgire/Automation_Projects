@@ -16,7 +16,7 @@ def get_script_dir() -> str:
 def setup_logger():
     log_dir = os.path.join(get_script_dir(), "logs")
     os.makedirs(log_dir, exist_ok=True)
-    logger = logging.getLogger(f"System_Audit_{socket.gethostname()}_{platform.system()}")
+    logger = logging.getLogger(f"System_Audit_{socket.gethostname()}_{platform.system()}.log")
     if not logger.handlers:
         logger.setLevel(logging.DEBUG)
         handler = RotatingFileHandler(
