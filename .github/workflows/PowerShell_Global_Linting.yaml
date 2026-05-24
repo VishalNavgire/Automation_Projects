@@ -1,0 +1,186 @@
+name: PowerShell Global Linting
+
+on:
+
+  pull_request:
+    branches:
+      - main
+
+    paths:
+      - 'Powershell/**/*.ps1' #Watch the Powershell folder and all sub-folders, but only trigger the pipeline if a file ending in .ps1 is added or changed."
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  powershell-lint:
+
+    name: PSScriptAnalyzer Validation
+
+    runs-on: windows-latest
+
+    steps:
+
+      # ---------------------------------------------------
+      # STEP 1 — Download Repository
+      # ---------------------------------------------------
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # ---------------------------------------------------
+      # STEP 2 — Create Artifact Directory
+      # ---------------------------------------------------
+
+      - name: Create Pipeline Log Directory
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path ./Pipeline-Logs
+
+      # ---------------------------------------------------
+      # STEP 3 — Install PSScriptAnalyzer
+      # ---------------------------------------------------
+
+      - name: Install PSScriptAnalyzer Module
+        shell: pwsh
+        run: |
+          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+
+      # ---------------------------------------------------
+      # STEP 4 — Discover All PowerShell Scripts
+      # ---------------------------------------------------
+
+      - name: Discover PowerShell Scripts
+        shell: pwsh
+        run: |
+
+          $Scripts = Get-ChildItem `
+            -Path ./Powershell `
+            -Recurse `
+            -Include *.ps1
+
+          $Scripts.FullName | Out-File `
+            "./Pipeline-Logs/Discovered-PowerShellScripts.log"
+
+          Write-Host "Discovered PowerShell Scripts:"
+          $Scripts.FullName
+
+      # ---------------------------------------------------
+      # STEP 5 — Execute PSScriptAnalyzer
+      # ---------------------------------------------------
+
+      # - name: Run PSScriptAnalyzer
+      #   shell: pwsh
+      #   run: |
+
+      #     $Results = Invoke-ScriptAnalyzer `
+      #       -Path ./Powershell `
+      #       -Recurse `
+      #       -Severity Warning,Error
+
+      #     # Save Results
+      #     $Results | Format-Table -AutoSize | Out-File `
+      #       "./Pipeline-Logs/PSScriptAnalyzer-Results.log"
+
+      #     # Filter Only Errors
+      #     $Errors = $Results | Where-Object {
+      #       $_.Severity -eq 'Error'
+      #     }
+
+      #     if ($Errors) {
+
+      #         Write-Host ""
+      #         Write-Host "PSScriptAnalyzer Errors Found:"
+      #         Write-Host ""
+
+      #         $Errors | Format-Table -AutoSize
+
+      #         throw "Critical PowerShell linting errors detected."
+
+      #     }
+      #     else {
+
+      #         Write-Host "No critical linting errors detected."
+
+      #     }
+
+      - name: Run Global PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          # 1. Get a list of all files that changed in this Pull Request and in the manual dispatch. 
+          # $ChangedFiles = git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+          if ("${{ github.event_name }}" -eq "pull_request")
+              {
+                  Write-Host "Pull Request detected."
+                  $ChangedFiles = git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+              }
+          else
+              {
+                  Write-Host "Manual workflow execution detected."
+
+                  $ChangedFiles = Get-ChildItem `
+                    -Path "./Powershell" `
+                    -Recurse `
+                    -Include *.ps1 |
+                    Select-Object -ExpandProperty FullName
+              }
+          
+          $SrcFolders = Get-ChildItem -Path "./Powershell" -Directory -Recurse | Where-Object { $_.Name -eq "src" }
+
+          foreach ($Folder in $SrcFolders) {
+              $RelativePath = $Folder.FullName.Replace((Get-Location).Path, "").TrimStart("\")
+              Write-host "Relative Paths $($RelativePath) "
+              $ProjectChanged = $ChangedFiles | Where-Object { $_ -like "$RelativePath/*" }
+
+              if ([string]::IsNullOrEmpty($ProjectChanged)) 
+                {
+                  Write-Host "Changes detected in: $ProjectChanged"
+                  
+                  $PsScripts = Get-ChildItem -Path $Folder.FullName -Filter "*.ps1" -Recurse
+                  foreach ($Script in $PsScripts) 
+                  {
+                      $ScriptBaseName = $Script.BaseName
+                      $LogFile = "./Pipeline-Logs/$($ScriptBaseName)-PSScriptAnalyzer.log"
+
+                      # FIXED: Added $ to Results
+                      $Results = Invoke-ScriptAnalyzer -Path $Script.FullName -Severity Warning,Error
+
+                      if ($Results.Where({$_.Severity -eq 'Error'})) {
+                          # Error found: Fail the pipeline
+                          $Results | Format-Table RuleName, Severity, ScriptName, Line, Message -AutoSize | Out-File $LogFile
+                          Write-Error "Linting failed for $ScriptBaseName (Errors found)"
+                          $Global:LintFailed = $true 
+                      } 
+                      elseif ($Results) {
+                          # Only warnings found: Success but log it
+                          "✔ Only warnings found for $ScriptBaseName." | Out-File $LogFile
+                          $Results | Format-Table RuleName, Severity, ScriptName, Line, Message -AutoSize | Out-File $LogFile -Append
+                          Write-Host "Warnings found in $ScriptBaseName - check log."
+                      } 
+                      else {
+                          "✔ No linting issues found." | Out-File $LogFile
+                      }
+                  }
+              } else {
+                  Write-Host "Skipping $($Folder.FullName) - No changes detected."
+              }
+          }
+
+          if ($Global:LintFailed) { exit 1 }
+
+      # ---------------------------------------------------
+      # STEP 6 — Upload Logs
+      # ---------------------------------------------------
+
+      - name: Upload Pipeline Logs
+        uses: actions/upload-artifact@v4
+
+        if: always()
+
+        with:
+          name: powershell-lint-logs
+          path: ./Pipeline-Logs/
+          retention-days: 14
