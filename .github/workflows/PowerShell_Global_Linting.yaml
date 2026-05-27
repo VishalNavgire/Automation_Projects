@@ -50,6 +50,22 @@ jobs:
           Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
 
       # ---------------------------------------------------
+      # STEP 3A — Import Alert Modules
+      # ---------------------------------------------------
+
+      - name: Validate Alert Modules
+        continue-on-error: true
+        shell: pwsh
+        run: |
+
+          Write-Host "Loading reusable alert modules..."
+
+          . ./Alert_Module/Notify_via_Ps/Write-StructuredLog.ps1
+          . ./Alert_Module/Notify_via_Ps/Send-TeamsNotification.ps1
+
+          Write-Host "Alert modules loaded successfully."
+
+      # ---------------------------------------------------
       # STEP 4 — Discover All PowerShell Scripts
       # ---------------------------------------------------
 
@@ -135,7 +151,7 @@ jobs:
               Write-host "Relative Paths $($RelativePath) "
               $ProjectChanged = $ChangedFiles | Where-Object { $_ -like "$RelativePath/*" }
 
-              if ([string]::IsNullOrEmpty($ProjectChanged)) 
+              if (-not [string]::IsNullOrEmpty($ProjectChanged)) 
                 {
                   Write-Host "Changes detected in: $ProjectChanged"
                   
@@ -171,6 +187,29 @@ jobs:
 
           if ($Global:LintFailed) { exit 1 }
 
+
+      # ---------------------------------------------------
+      # STEP 5A — Send Teams Notification On Failure
+      # ---------------------------------------------------
+
+      - name: Send Teams Failure Notification
+
+        if: failure()
+        continue-on-error: true
+        shell: pwsh
+        env:
+          TEAMS_FAILURE_WEBHOOK: ${{ secrets.TEAMS_FAILURE_WEBHOOK }}
+        run: |
+          . ./Alert_Module/Notify_via_Ps/Send-TeamsNotification.ps1
+
+          Send-TeamsNotification `
+            -Message "Critical PowerShell linting errors detected in GitHub Actions pipeline." `
+            -Severity "FAILURE" `
+            -PipelineName "PowerShell Global Linting" `
+            -Repository "${{ github.repository }}" `
+            -Branch "${{ github.ref_name }}" `
+            -Committer "${{ github.actor }}" `
+            -WorkflowUrl "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"   
       # ---------------------------------------------------
       # STEP 6 — Upload Logs
       # ---------------------------------------------------
