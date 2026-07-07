@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🏗️ Azure Windows Image Factory
+# 🏗️ Azure Golden Image Builder Automation
 ### Enterprise Automated Golden Image Pipeline using Packer, Ansible & GitHub Actions
 
 ![Azure](https://img.shields.io/badge/Microsoft-Azure-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)
