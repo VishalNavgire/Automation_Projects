@@ -1,0 +1,65 @@
+name: Enterprise Azure Windows Image Factory
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+permissions:
+  id-token: write # Required for Azure OIDC authentication
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PKR_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+      PKR_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      PKR_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Azure CLI Login via OIDC
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Fetch Secret from Azure Key Vault
+      uses: azure/get-keyvault-secrets@v1
+      with:
+        keyvault: "kv-prod-factory-01" # Mock Key Vault Name
+        secrets: 'win-admin-password'
+      id: kv_secrets
+
+    - name: Setup Packer
+      uses: hashicorp/setup-packer@main
+      with:
+        version: "latest"
+
+    - name: Setup Python & Ansible
+      uses: actions/setup-python@v5
+      with:
+        python-python: '3.11'
+    
+    - name: Install Ansible & Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible pywinrm
+        ansible-galaxy collection install amazon.aws community.windows ansible.windows
+
+    - name: Packer Init and Validate
+      run: |
+        cd packer
+        packer init .
+        packer validate .
+
+    - name: Run Packer Build
+      env:
+        PKR_VAR_client_secret: ${{ steps.kv_secrets.outputs.win-admin-password }}
+      run: |
+        cd packer
+        packer build .

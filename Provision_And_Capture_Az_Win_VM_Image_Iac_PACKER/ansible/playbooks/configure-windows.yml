@@ -1,0 +1,7 @@
+---
+- name: Hardening and Enterprise Provisioning Core Playbook
+  hosts: all
+  gather_facts: yes
+
+  roles:
+    - OS-Hardening

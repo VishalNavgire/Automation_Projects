@@ -1,0 +1,12 @@
+# Packer internal structures
+.packer/
+*.pkr.hcl.lock
+
+# Ansible build outputs
+*.retry
+.ansible_cache/
+
+# Operating System specific tracking logs
+.DS_Store
+Thumbs.db
+Project_Notes*
