@@ -1,0 +1,995 @@
+
+======================================================================================================================================
+Test 1: Validate Settings Configuration Paste this into your Python shell to confirm Settings instantiated correctly:
+
+from app.core.config import settings
+# Inspect individual attributes
+print("Project Name :", settings.PROJECT_NAME)
+print("API Version  :", settings.VERSION)
+print("Developer    :", settings.DEVELOPER_NAME)
+print("DB Connection:", settings.DATABASE_URL)
+
+# Inspect model schema exported as a dictionary
+print("\nSettings Dict keys:", list(settings.model_dump().keys()))
+
+======================================================================================================================================
+Test 2: Inspect Database Engine Properties
+
+from app.db.session import engine
+# Inspect engine configuration
+print("Engine Driver :", engine.driver)
+print("Engine Name   :", engine.name)
+print("Engine URL    :", engine.url)
+
+======================================================================================================================================
+Test 3: Test Session Generator Lifecycle (get_db)
+
+from app.db.session import get_db
+from sqlalchemy.orm import Session
+
+# 1. Instantiate generator
+db_gen = get_db()
+
+# 2. Advance generator to yield active Session
+session = next(db_gen)
+
+# 3. Verify session type and status
+print("Is session instance of Session?:", isinstance(session, Session))
+print("Is session active?             :", session.is_active)
+
+# 4. Trigger cleanup (finally block in get_db)
+try:
+    next(db_gen)
+except StopIteration:
+    print("Session successfully closed by generator!")
+
+======================================================================================================================================
+
+Launch python3 in your virtual environment from the IntuneLite root directory to generate the SQLite database file (intunelite.db) 
+and create all tables:
+
+# 1. Import database engine, base, and models
+from app.db.session import engine
+from app.db.base import Base
+import app.models  # Registers User and ManagedDevice models with Base
+
+# 2. Inspect registered tables inside metadata catalog
+print("Registered Tables:", Base.metadata.tables.keys())
+
+# 3. Create all tables in SQLite database file
+Base.metadata.create_all(bind=engine)
+print("Tables created successfully in intunelite.db!")
+
+======================================================================================================================================
+Summary of How They Work Together
+[ user.py ]  ---> Inherits from ---> [ base.py ] <--- Registered in ---> [ __init__.py ]
+[ device.py ]  ---> Inherits from ---> [ (Base)  ]                         |
+                                                                           v
+                                                            Base.metadata.create_all(engine)
+                                                                           |
+                                                                           v
+                                                                 [ intunelite.db ]
+
+
+
+======================================================================================================================================
+
+Let's run through interactive tests to register your models, build the intunelite.db SQLite database, and perform CRUD (Create, Read, Update, Delete) operations on both IT Administrators and Managed Devices.
+
+Step 1: Initialize Database Tables in SQLite
+Run this block in your python3 console to trigger table creation from your model catalog:
+
+from app.db.session import engine
+from app.db.base import Base
+import app.models  # Registers User and ManagedDevice with Base
+
+# 1. Verify registered tables inside Base metadata
+print("Registered Tables:", list(Base.metadata.tables.keys()))
+
+# 2. Build the physical tables on disk in intunelite.db
+Base.metadata.create_all(bind=engine)
+print("Database schema generated successfully!")
+
+
+======================================================================================================================================
+Step 2: Insert Test Data (Admin User & Managed Endpoint)
+Now, open a database session using SessionLocal and insert sample records:
+
+from app.db.session import *
+from app.models.user import User
+from app.models.device import ManagedDevice
+
+#db = SessionLocal()
+
+def get_db() -> Generator[Session, None, None]:
+    """Provides a transactional database session per HTTP request."""
+    db = SessionLocal()
+    try:
+        yield db #Here is the database session. Use it. When you're finished, come back here and I'll clean it up."
+    finally:
+        db.close()
+
+# 1. Initialize generator object and extract active session object using next() function. 
+connect_to_db = get_db()
+db = next(connect_to_db)
+
+# 1. Create an IT Administrator record
+admin_user = User(
+    email="vishal@intunelite.local",
+    username="vishal_admin",
+    hashed_password="fake_secure_hash_123",
+    full_name="Vishal Navgire",
+    role="admin"
+)
+
+# 2. Create a Managed Endpoint record (e.g., Fedora Workstation)
+fedora_laptop = ManagedDevice(
+    device_name="FEDORA-WORKSTATION-01",
+    serial_number="SN-FED-2026-99",
+    operating_system="Fedora Linux",
+    os_version="40.0",
+    ip_address="192.168.1.105",
+    compliance_status="COMPLIANT",
+    is_encrypted=True
+)
+
+# 3. Stage and commit to SQLite
+db.add(admin_user)
+db.add(fedora_laptop)
+db.commit()
+
+# 4. Refresh instances to view auto-generated primary key IDs
+db.refresh(admin_user)
+db.refresh(fedora_laptop)
+
+print(f"Created Admin User ID  : {admin_user.id} ({admin_user.full_name})")
+print(f"Created Device ID      : {fedora_laptop.id} ({fedora_laptop.device_name})")
+
+
+======================================================================================================================================
+Step 3: Query & Inspect Records
+Execute queries using SQLAlchemy 2.0 select() syntax:
+
+from sqlalchemy import select
+
+# 1. Query the User record
+user_query = db.execute(select(User).where(User.username == "vishal_admin")).scalar_one_or_none()
+print("Queried User Email :", user_query.email)
+print("User Role          :", user_query.role)
+
+# 2. Query all Managed Devices
+devices = db.execute(select(ManagedDevice)).scalars().all()
+print("\n--- MANAGED DEVICES IN DATABASE ---")
+for d in devices:
+    print(f"ID: {d.id} | Host: {d.device_name} | OS: {d.operating_system} | Encrypted: {d.is_encrypted} | Status: {d.compliance_status}")
+
+
+======================================================================================================================================
+Step 4: Update Endpoint Telemetry
+Simulate a device check-in where compliance or OS attributes update:
+
+# Select device by hostname
+device = db.execute(select(ManagedDevice).where(ManagedDevice.device_name == "FEDORA-WORKSTATION-01")).scalar_one_or_none()
+
+# Update fields
+device.os_version = "40.1"
+device.compliance_status = "COMPLIANT"
+
+# Commit update
+db.commit()
+db.refresh(device)
+
+print(f"Updated Device Version : {device.os_version}")
+print(f"Last Check-in Timestamp: {device.last_checkin}")
+
+# Always close manual sessions in REPL
+db.close()
+
+======================================================================================================================================
+Interactive Practice Test 1: Testing app/schemas/user.py
+Launch python3 in your terminal and test how Pydantic validates user input and converts ORM instances:
+
+from app.schemas.user import UserCreate, UserResponse
+from pydantic import ValidationError
+
+# 1. Test Valid Creation Payload
+valid_data = {
+    "email": "admin@intunelite.local",
+    "username": "admin_user",
+    "full_name": "System Administrator",
+    "password": "SuperSecretPassword123!",
+}
+'''
+    # Manual way (Without **)
+    user_in = UserCreate(
+        email=valid_input["email"],
+        username=valid_input["username"],
+        full_name=valid_input["full_name"],
+        password=valid_input["password"],
+)
+'''
+user_in = UserCreate(**valid_data)
+print("Validated User Email:", user_in.email)
+
+# 2. Test Invalid Email Validation (Should raise ValidationError)
+try:
+    invalid_data = {
+        "email": "not-an-email",
+        "username": "admin",
+        "password": "123",
+    }
+    UserCreate(**invalid_data)
+except ValidationError as e:
+    print(
+        "\nPydantic caught invalid email successfully!\nError details:",
+        e.errors()[0]["msg"],
+    )
+
+======================================================================================================================================
+Interactive Practice Test 2: Converting ORM Model to Pydantic Schema
+Launch python3 in your terminal and see how from_attributes=True converts a database row straight into a clean JSON-serializable schema:   
+
+from app.db.session import get_db
+from app.models.device import ManagedDevice
+from app.schemas.device import ManagedDeviceResponse
+
+# 1. Extract session and query device from database
+db = next(get_db())
+device_orm = db.query(ManagedDevice).first()
+
+# 2. Convert SQLAlchemy ORM object -> Pydantic Schema
+device_schema = ManagedDeviceResponse.model_validate(device_orm)
+
+print("Device ID            :", device_schema.id)
+print("Device Hostname      :", device_schema.device_name)
+print("JSON Exportable Dict :", device_schema.model_dump())
+
+db.close()
+
+======================================================================================================================================
+Interactive Practice Test 3: Testing Token Schemas
+Launch python3 in your terminal to verify token schema construction:
+
+from app.schemas.token import Token, TokenData
+
+# 1. Create access token payload schema
+token_resp = Token(access_token="eyJhbGciOiJIUzI1NiIsInR5cCI6...")
+print("Token Response JSON:", token_resp.model_dump_json())
+
+# 2. Create decoded payload token data
+token_claims = TokenData(id=1, username="vishal_admin", role="admin")
+print("Extracted Admin Claim:", token_claims.username)
+
+======================================================================================================================================
+Interactive Practice Test for app/core/security.py
+
+from app.core.security import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+    decode_access_token
+)
+import jwt
+
+# --- Test 1: Password Hashing & Verification ---
+raw_password = "AdminSuperSecretPassword2026!"
+
+# 1. Generate password hash
+hashed_pwd = get_password_hash(raw_password)
+print("1. Generated Password Hash:\n  ", hashed_pwd)
+
+# 2. Verify correct password (Returns True)
+is_valid = verify_password("AdminSuperSecretPassword2026!", hashed_pwd)
+print("\n2. Correct Password Verification:", is_valid)
+
+# 3. Verify incorrect password (Returns False)
+is_invalid = verify_password("WrongPassword123", hashed_pwd)
+print("3. Wrong Password Verification  :", is_invalid)
+
+
+# --- Test 2: Creating & Decoding JWT Tokens ---
+# 1. Create token with custom claims (User ID = 101, role = 'admin')
+token = create_access_token(
+    subject=101, 
+    extra_claims={"username": "vishal_admin", "role": "admin"}
+)
+print("\n4. Generated Signed JWT Token:\n  ", token)
+
+# 2. Decode valid token
+decoded_payload = decode_access_token(token)
+print("\n5. Decoded Token Payload:")
+print("   Subject (User ID):", decoded_payload.get("sub"))
+print("   Username         :", decoded_payload.get("username"))
+print("   Role Claim       :", decoded_payload.get("role"))
+print("   Expiration Timestamp:", decoded_payload.get("exp"))
+
+
+# --- Test 3: Token Tampering Security Check ---
+# Simulate an attacker trying to alter the token string
+tampered_token = token[:-5] + "XXXXX"
+
+try:
+    decode_access_token(tampered_token)
+except jwt.PyJWTError as e:
+    print("\n6. Security Check Passed! Tampered token rejected:\n  ", type(e).__name__)
+
+Note: 
+
+How to Make Your JWT Tokens Stronger in create_access_token
+To make tokens enterprise-grade and resilient against security risks (such as token replay attacks, cross-site forgery, or token hijacking), 
+you can add standard cryptographic claims defined in RFC 7519 (JWT Standard):
+
+--------------
+import uuid
+from datetime import datetime, timedelta, timezone
+from typing import Any, Optional
+import jwt
+from app.core.config import settings
+
+def create_access_token(
+    subject: str | int,
+    expires_delta: Optional[timedelta] = None,
+    extra_claims: Optional[dict[str, Any]] = None,
+) -> str:
+    now = datetime.now(timezone.utc)
+    
+    if expires_delta:
+        expire = now + expires_delta
+    else:
+        expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    # Base payload structure with enterprise security claims
+    to_encode = {
+        # 1. Existing RFC Claims
+        "sub": str(subject),                         # Subject (Who the token belongs to)
+        "exp": expire,                               # Expiration time
+        
+        # 2. Key Security Additions
+        "iat": now,                                  # Issued At (Exact time token was generated)
+        "nbf": now,                                  # Not Before (Token is invalid prior to this timestamp)
+        "jti": str(uuid.uuid4()),                    # JWT ID (Unique nonce for token revocation / blacklist tracking)
+        "iss": "intunelite-auth-service",            # Issuer (Identifies who generated the token)
+        "aud": "intunelite-api",                     # Audience (Identifies the target recipient API)
+    }
+
+    # Merges extra claims (e.g., role, department)
+    if extra_claims:
+        to_encode.update(extra_claims)
+
+    encoded_jwt = jwt.encode(
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
+    return encoded_jwt
+--------------   
+
+======================================================================================================================================
+Interactive Practice Test for app/api/dependencies.py
+
+from app.api.dependencies import get_db, get_current_user, get_current_admin_user
+from app.core.security import create_access_token
+from app.models.user import User
+from fastapi import HTTPException
+
+# 1. Get database session
+db = next(get_db())
+
+# 2. Query test admin user inserted in Phase 2
+admin_user = db.query(User).filter(User.username == "vishal_admin").first()
+print("1. Target User from DB ID:", admin_user.id, "| Role:", admin_user.role)
+
+-----------------------------
+Note: When you run print(admin_user), Python prints <app.models.user.User object at 0x7fd7d2fe9400>.
+
+This happens because the User ORM model is a Python class object, and by default, Python displays the class name and its memory address 
+unless a custom string representation method (__repr__ or __str__) is defined on the class.
+-----------------------------
+
+# 3. Mint a valid JWT token for this user
+valid_token = create_access_token(
+    subject=admin_user.id,
+    extra_claims={"username": admin_user.username, "role": admin_user.role}
+)
+print("\n2. Minted Valid Token:\n  ", valid_token[:40] + "...")
+
+# 4. Manually test get_current_user dependency
+authenticated_user = get_current_user(db=db, token=valid_token)
+print("\n3. Authenticated User via Token:", authenticated_user.full_name)
+
+# 5. Manually test get_current_admin_user RBAC dependency
+authorized_admin = get_current_admin_user(current_user=authenticated_user)
+print("4. RBAC Check Passed! Admin verified:", authorized_admin.username)
+
+# 6. Test invalid token rejection
+try:
+    get_current_user(db=db, token="invalid.fake.jwt")
+except HTTPException as e:
+    print("\n5. Security Gatekeeper Passed! Invalid token caught:\n  ", e.status_code, e.detail)
+
+db.close()
+
+======================================================================================================================================
+Interactive Test for app/api/v1/auth.py
+
+from app.api.dependencies import get_db
+from app.api.v1.auth import register_user, login_for_access_token
+from app.schemas.user import UserCreate
+from fastapi.security import OAuth2PasswordRequestForm
+
+db = next(get_db())
+
+# 1. Test User Registration Route Logic
+new_admin_data = UserCreate(
+    email="dev_admin@intunelite.local",
+    username="dev_admin",
+    full_name="Dev Admin User",
+    password="SecureDevPassword2026!",
+    role="admin"
+)
+
+created_user = register_user(user_in=new_admin_data, db=db)
+print("1. User Registered ID:", created_user.id, "| Email:", created_user.email)
+
+# 2. Test Login & Token Generation Route Logic
+form_payload = OAuth2PasswordRequestForm(
+    username="dev_admin",
+    password="SecureDevPassword2026!",
+    scope=""
+)
+
+token_response = login_for_access_token(form_data=form_payload, db=db)
+print("\n2. Login Successful! Issued Token:\n  ", token_response.access_token[:40] + "...")
+
+db.close()
+
+======================================================================================================================================
+Interactive REPL Practice for app/api/v1/devices.py
+
+from app.api.dependencies import get_db
+from app.api.v1.devices import register_device, list_devices
+from app.models.user import User
+from app.schemas.device import ManagedDeviceCreate
+
+db = next(get_db())
+
+# 1. Fetch test admin user for dependency simulation
+admin_user = db.query(User).filter(User.role == "admin").first()
+
+# 2. Test Device Enrollment Route Logic
+new_device = ManagedDeviceCreate(
+    device_name="FEDORA-WORKSTATION-02",
+    serial_number="SN-FED-2026-100",
+    operating_system="Fedora Linux",
+    os_version="40.0",
+    ip_address="192.168.1.110",
+    compliance_status="COMPLIANT",
+    is_encrypted=True
+)
+
+created_device = register_device(device_in=new_device, db=db, current_admin=admin_user)
+print("1. Device Enrolled ID:", created_device.id, "| Host:", created_device.device_name)
+
+# 3. Test Device Listing Route Logic
+all_devices = list_devices(db=db, current_admin=admin_user)
+print("\n2. Total Enrolled Devices in Fleet:", len(all_devices))
+for dev in all_devices:
+    print(f"   - {dev.device_name} ({dev.operating_system}) -> Status: {dev.compliance_status}")
+
+db.close()
+
+======================================================================================================================================
+Inspecting Database Records Outside FastAPI:
+
+from app.db.session import engine
+from sqlalchemy import select, text
+from sqlalchemy.orm import Session
+
+# Connect directly to your existing DB file
+with Session(engine) as session:
+    print('=== USERS TABLE ===')
+    users = session.execute(text('SELECT id, email, username, role, is_active FROM users')).fetchall()
+    for u in users:
+        print(u)
+        
+    print('\n=== MANAGED DEVICES TABLE ===')
+    devices = session.execute(text('SELECT id, device_name, serial_number, operating_system, os_version, compliance_status FROM managed_devices')).fetchall()
+    for d in devices:
+        print(d)
+
+
+======================================================================================================================================
+How to Read & Debug Large Python Tracebacks in Production :
+----------------------
+Error Details<Tracebacks> 
+
+WARNING:  WatchFiles detected changes in 'app/schemas/user.py'. Reloading...
+Process SpawnProcess-3:
+Traceback (most recent call last):
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/networks.py", line 966, in import_email_validator
+    import email_validator
+ModuleNotFoundError: No module named 'email_validator'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/lib64/python3.14/multiprocessing/process.py", line 320, in _bootstrap
+    self.run()
+    ~~~~~~~~^^
+  File "/usr/lib64/python3.14/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+    ~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/uvicorn/server.py", line 77, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+  File "/usr/lib64/python3.14/asyncio/runners.py", line 205, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/usr/lib64/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/uvicorn/server.py", line 81, in serve
+    await self._serve(sockets)
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/uvicorn/server.py", line 88, in _serve
+    config.load()
+    ~~~~~~~~~~~^^
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/uvicorn/config.py", line 494, in load
+    self.loaded_app = self.load_app()
+                      ~~~~~~~~~~~~~^^
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/uvicorn/config.py", line 428, in load_app
+    return import_from_string(self.app)
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/uvicorn/importer.py", line 19, in import_from_string
+    module = importlib.import_module(module_str)
+  File "/usr/lib64/python3.14/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1406, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/main.py", line 32, in <module>
+    from app.api.v1.admin import router as admin_router
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/app/api/v1/admin.py", line 14, in <module>
+    from app.schemas.user import UserResponse
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/app/schemas/user.py", line 39, in <module>
+    class UserBase(BaseModel):
+    ...<5 lines>...
+        role: str = "admin"
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/_internal/_model_construction.py", line 256, in __new__
+    complete_model_class(
+    ~~~~~~~~~~~~~~~~~~~~^
+        cls,
+        ^^^^
+    ...<3 lines>...
+        create_model_module=_create_model_module,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/_internal/_model_construction.py", line 667, in complete_model_class
+    schema = gen_schema.generate_schema(cls)
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/_internal/_generate_schema.py", line 744, in generate_schema
+    schema = self._generate_schema_inner(obj)
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/_internal/_generate_schema.py", line 1038, in _generate_schema_inner
+    return self._model_schema(obj)
+           ~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/_internal/_generate_schema.py", line 868, in _model_schema
+    {k: self._generate_md_field_schema(k, v, decorators) for k, v in fields.items()},
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/_internal/_generate_schema.py", line 1245, in _generate_md_field_schema
+    schema, metadata = self._common_field_schema(name, field_info, decorators)
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/_internal/_generate_schema.py", line 1299, in _common_field_schema
+    schema = self._apply_annotations(
+        source_type,
+        annotations + validators_from_decorators,
+    )
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/_internal/_generate_schema.py", line 2252, in _apply_annotations
+    schema = get_inner_schema(source_type)
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/_internal/_schema_generation_shared.py", line 83, in __call__
+    schema = self._handler(source_type)
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/_internal/_generate_schema.py", line 2228, in inner_handler
+    schema = self._generate_schema_from_get_schema_method(obj, source_type)
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/_internal/_generate_schema.py", line 931, in _generate_schema_from_get_schema_method
+    schema = get_schema(
+        source, CallbackGetCoreSchemaHandler(self._generate_schema_inner, self, ref_mode=ref_mode)
+    )
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/networks.py", line 1006, in __get_pydantic_core_schema__
+    import_email_validator()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/vishal/Documents/Python_Projects_Fedora/Python_Projects_2026/FastAPI_EricRoby_VW_Udemy/Practice_FastAPI/Intune_Lite/venv/lib64/python3.14/site-packages/pydantic/networks.py", line 968, in import_email_validator
+    raise ImportError("email-validator is not installed, run `pip install 'pydantic[email]'`") from e
+ImportError: email-validator is not installed, run `pip install 'pydantic[email]'`
+
+----------------------
+
+    When working on enterprise applications with dozens of files, a Python stack trace can look terrifying at first glance. However, there is a simple 3-step technique to debug them instantly:
+
+    Step 1: Read the Very Last Line First (The "Root Cause")
+    Always scroll to the bottom line of the traceback. Python places the actual error message at the very end.
+
+    In your log: ImportError: email-validator is not installed...
+
+    This immediately tells you what went wrong without needing to read all 40 lines above it.
+
+    Step 2: Scan Upwards for "Your Code" (Ignore Library Files)
+    The middle of a stack trace is filled with framework code (like uvicorn, pydantic, asyncio). Filter out anything referencing site-packages or /usr/lib/ and look for paths pointing to your project directory (/Intune_Lite/...).
+
+    Scanning your log from top to bottom, we find the exact file propagation path:
+
+    main.py, line 32: from app.api.v1.admin import router as admin_router
+
+    admin.py, line 14: from app.schemas.user import UserResponse
+
+    user.py, line 39: class UserBase(BaseModel): (where email: EmailStr triggered the import check)
+
+    Step 3: Connect the Trail
+    By reading the trail: main.py imported admin.py, which imported user.py, which tried to evaluate EmailStr, which failed because email-validator was missing
+
+
+======================================================================================================================================
+Step 3: Verify All Available Routes
+    To see every single registered URL path currently running on your FastAPI server, execute this snippet in your terminal:
+
+    from main import app
+    for route in app.routes:
+        print(f'{route.methods if hasattr(route, \"methods\") else \"--\"} -> {route.path}')
+
+
+======================================================================================================================================
+Interactive Practice Steps for Step 7.1
+
+from app.db.session import engine, SessionLocal
+from app.db.base import Base
+from app.models.compliance import CompliancePolicy
+from sqlalchemy import select
+
+# 1. Create the new 'compliance_policies' table in SQLite
+Base.metadata.create_all(bind=engine)
+print("1. Table created successfully!")
+
+# 2. Open an interactive DB session
+db = SessionLocal()
+
+# 3. Create a test policy instance in memory
+test_policy = CompliancePolicy(
+    name="Fedora 40 Baseline",
+    description="Requires Fedora Linux version 40.0+ and LUKS encryption",
+    target_os="Fedora Linux",
+    min_os_version="40.0",
+    require_encryption=True,
+    is_active=True
+)
+
+# 4. Save to database
+db.add(test_policy)
+db.commit()
+db.refresh(test_policy)
+
+print("\n2. Saved Compliance Policy to DB:")
+print(f"   ID                 : {test_policy.id}")
+print(f"   Name               : {test_policy.name}")
+print(f"   Target OS          : {test_policy.target_os}")
+print(f"   Require Encryption : {test_policy.require_encryption}")
+
+# 5. Clean up test record to keep database clean
+db.delete(test_policy)
+db.commit()
+db.close()
+print("\n3. Cleaned up test record.")
+
+======================================================================================================================================
+Interactive Practice Steps for Step 7.2
+
+from datetime import datetime, timezone
+from app.schemas.compliance import (
+    CompliancePolicyCreate,
+    CompliancePolicyResponse,
+    ComplianceEvaluationResult
+)
+
+# 1. Test CompliancePolicyCreate Input Validation
+raw_input = {
+    "name": "Windows 11 Enterprise Baseline",
+    "description": "Mandatory BitLocker and Windows 11 Build 22621+",
+    "target_os": "Windows 11",
+    "min_os_version": "10.0.22621",
+    "require_encryption": True,
+    "is_active": True
+}
+
+policy_in = CompliancePolicyCreate(**raw_input)
+print("1. Validated Input Policy Name:", policy_in.name)
+print("   Require Encryption        :", policy_in.require_encryption)
+
+# 2. Test ComplianceEvaluationResult Output Serialization
+eval_result = ComplianceEvaluationResult(
+    device_id=1,
+    device_name="FEDORA-WORKSTATION-01",
+    compliance_status="NON_COMPLIANT",
+    evaluated_at=datetime.now(timezone.utc),
+    violations=[
+        "Device encryption is disabled (LUKS required).",
+        "OS version 39.0 is below required baseline 40.0."
+    ]
+)
+
+print("\n2. Compliance Evaluation Output DTO:")
+print(f"   Device Name       : {eval_result.device_name}")
+print(f"   Status            : {eval_result.compliance_status}")
+print(f"   Total Violations  : {len(eval_result.violations)}")
+for v in eval_result.violations:
+    print(f"     - {v}")
+
+
+======================================================================================================================================
+Interactive Practice Steps for Step 7.3 & 7.4
+from app.api.dependencies import get_db
+from app.api.v1.compliance import create_compliance_policy, evaluate_device_compliance
+from app.models.user import User
+from app.schemas.compliance import CompliancePolicyCreate
+
+db = next(get_db())
+
+# 1. Fetch test admin user
+admin_user = db.query(User).filter(User.role == "admin").first()
+
+# 2. Create a test Fedora policy rule
+new_policy_data = CompliancePolicyCreate(
+    name="Fedora 40 Strict Baseline",
+    description="Requires OS version 40.0+ and LUKS encryption",
+    target_os="Fedora Linux",
+    min_os_version="40.0",
+    require_encryption=True,
+    is_active=True
+)
+
+try:
+    policy = create_compliance_policy(policy_in=new_policy_data, db=db, current_admin=admin_user)
+    print("1. Compliance Policy Created ID:", policy.id, "| Name:", policy.name)
+except Exception as e:
+    print("1. Policy already exists, fetching existing...")
+
+# 3. Test Compliance Evaluation against Device ID 1
+eval_result = evaluate_device_compliance(device_id=1, db=db, current_admin=admin_user)
+print("\n2. Compliance Audit Result for Device ID 1:")
+print("   Host Name        :", eval_result.device_name)
+print("   Compliance Status:", eval_result.compliance_status)
+print("   Violations Count :", len(eval_result.violations))
+for v in eval_result.violations:
+    print("     -", v)
+
+db.close()
+
+======================================================================================================================================
+Interactive Practice Steps for Step 8.1
+
+from app.db.session import engine, SessionLocal
+from app.db.base import Base
+from app.models.script import DeploymentScript
+
+# 1. Create the new 'deployment_scripts' table in SQLite
+Base.metadata.create_all(bind=engine)
+print("1. Table created successfully!")
+
+# 2. Open DB session
+db = SessionLocal()
+
+# 3. Create a test Bash deployment script record
+test_script = DeploymentScript(
+    name="Fedora Security Audit Script",
+    description="Checks firewall status and active listening ports",
+    target_os="Fedora Linux",
+    script_type="Bash",
+    content="#!/bin/bash\nsystemctl status firewalld\nss -tulpn",
+    is_active=True
+)
+
+db.add(test_script)
+db.commit()
+db.refresh(test_script)
+
+print("\n2. Saved Script Record to DB:")
+print(f"   ID          : {test_script.id}")
+print(f"   Name        : {test_script.name}")
+print(f"   Script Type : {test_script.script_type}")
+print(f"   Target OS   : {test_script.target_os}")
+
+# 4. Clean up test record
+db.delete(test_script)
+db.commit()
+db.close()
+print("\n3. Cleaned up test record.")
+
+======================================================================================================================================
+Interactive Practice Steps for Step 8.2
+
+from app.schemas.script import DeploymentScriptCreate, DeploymentScriptResponse
+
+# 1. Test Input Validation for PowerShell Script
+ps_raw = {
+    "name": "Set Windows Defender Baseline",
+    "description": "Enables Real-Time Protection via PowerShell",
+    "target_os": "Windows 11",
+    "script_type": "PowerShell",
+    "content": "Set-MpPreference -DisableRealtimeMonitoring $false",
+    "is_active": True
+}
+
+script_in = DeploymentScriptCreate(**ps_raw)
+print("1. Validated Script Name:", script_in.name)
+print("   Script Interpreter   :", script_in.script_type)
+
+# 2. Test Response Schema Output Formatting
+mock_db_dict = {
+    "id": 10,
+    "name": script_in.name,
+    "description": script_in.description,
+    "target_os": script_in.target_os,
+    "script_type": script_in.script_type,
+    "content": script_in.content,
+    "is_active": script_in.is_active
+}
+
+script_out = DeploymentScriptResponse(**mock_db_dict)
+print("\n2. Serialized Output DTO:")
+print(f"   ID          : {script_out.id}")
+print(f"   Target OS   : {script_out.target_os}")
+print(f"   Code Payload:\n   {script_out.content}")
+
+======================================================================================================================================
+Interactive Practice Steps for Step 8.3 & 8.4
+
+from app.api.dependencies import get_db
+from app.api.v1.scripts import create_script, get_scripts_for_device
+from app.models.user import User
+from app.schemas.script import DeploymentScriptCreate
+
+db = next(get_db())
+
+# 1. Fetch test admin user
+admin_user = db.query(User).filter(User.role == "admin").first()
+
+# 2. Upload a test remediation script for Fedora Linux
+new_script_data = DeploymentScriptCreate(
+    name="Fedora Firewall & LUKS Enforcer",
+    description="Enables firewalld and checks disk encryption status",
+    target_os="Fedora Linux",
+    script_type="Bash",
+    content="#!/bin/bash\nsystemctl enable --now firewalld\nlsblk -o NAME,FSTYPE,MOUNTPOINT",
+    is_active=True
+)
+
+try:
+    script = create_script(script_in=new_script_data, db=db, current_admin=admin_user)
+    print("1. Script Uploaded ID:", script.id, "| Name:", script.name)
+except Exception as e:
+    print("1. Script already exists, fetching existing...")
+
+# 3. Test Device Script Fetch targeting Device ID 1
+device_scripts = get_scripts_for_device(device_id=1, db=db, current_admin=admin_user)
+print(f"\n2. Targeted Scripts Found for Device ID 1: ({len(device_scripts)})")
+for s in device_scripts:
+    print(f"   - [{s.script_type}] {s.name} (Target: {s.target_os})")
+
+db.close()
+
+======================================================================================================================================
+Here is a Python script you can run directly inside an interactive Python session (or execute as a command) 
+to inspect every table, schema, and raw record inside intunelite_10Aug2026.db.
+
+from app.db.session import engine
+from sqlalchemy import inspect, select, text
+from sqlalchemy.orm import Session
+
+# 1. Inspect Table Names present in the Database
+inspector = inspect(engine)
+tables = inspector.get_table_names()
+
+print("=" * 60)
+print(f"DATABASE FILE: intunelite_10Aug2026.db")
+print(f"DETECTED TABLES ({len(tables)}): {tables}")
+print("=" * 60)
+
+# 2. Query and display records from every table
+with Session(engine) as session:
+    for table_name in tables:
+        print(f"\n--- TABLE: {table_name.upper()} ---")
+        
+        # Fetch column names
+        columns = [col["name"] for col in inspector.get_columns(table_name)]
+        print(f"Columns: {columns}")
+        
+        # Fetch all rows
+        rows = session.execute(text(f"SELECT * FROM {table_name}")).fetchall()
+        
+        if not rows:
+            print("  [No records found in this table]")
+        else:
+            for idx, row in enumerate(rows, start=1):
+                # Convert row object to a dictionary for clear reading
+                row_dict = dict(zip(columns, row))
+                print(f"  Row {idx}: {row_dict}")
+
+print("\n" + "=" * 60)
+print("INSPECTION COMPLETE")
+print("=" * 60)
+
+
+======================================================================================================================================
+Here are three quick ways to read and inspect all records inside the users table of your intunelite_10Aug2026.db database.
+
+from app.db.session import engine
+from app.models.user import User
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+with Session(engine) as session:
+    # Query all user ORM objects from the 'users' table
+    users = session.scalars(select(User)).all()
+
+    print(f"\nTotal Users Found: {len(users)}")
+    print("=" * 70)
+    for u in users:
+        print(f"ID        : {u.id}")
+        print(f"Email     : {u.email}")
+        print(f"Username  : {u.username}")
+        print(f"Userpswd  : {u.hashed_password}")
+        print(f"Full Name : {u.full_name}")
+        print(f"Role      : {u.role}")
+        print(f"Is Active : {u.is_active}")
+        print("-" * 70)
+
+======================================================================================================================================
+Interactive Practice (Testing in Python3 REPL)
+You can simulate the entire authentication, decoding, and database lookup flow directly in your terminal using an interactive Python session.
+
+Ensure your virtual environment is active ((venv)) and run python3 from the Intune_Lite root directory:
+
+from app.db.session import engine, SessionLocal
+from app.core.security import create_access_token, decode_access_token
+from app.models.user import User
+from app.schemas.user import UserResponse
+from sqlalchemy import select
+
+# 1. Open a DB session and fetch a user from SQLite
+db = SessionLocal()
+user = db.execute(select(User)).scalars().first()
+
+print(f"1. Target User Loaded from DB: ID={user.id} | Username='{user.username}'")
+
+# 2. Simulate User Login -> Generate JWT Token
+access_token = create_access_token(subject=user.username)
+print(f"\n2. Generated Access Token:\n   {access_token}")
+
+# 3. Simulate Endpoint Token Verification -> Decode JWT
+payload = decode_access_token(access_token)
+extracted_username = payload.get("sub")
+print(f"\n3. Token Decoded Successfully! Extracted Subject ('sub'): '{extracted_username}'")
+
+# 4. Simulate Dependency DB Fetching
+authenticated_user = db.execute(
+    select(User).where(User.username == extracted_username)
+).scalar_one_or_none()
+
+print(f"\n4. Authenticated User Entity Retrieved:")
+print(f"   Name: {authenticated_user.full_name} | Role: {authenticated_user.role}")
+
+# 5. Simulate Pydantic Response Serialization (UserResponse DTO)
+user_response = UserResponse.model_validate(authenticated_user)
+print(f"\n5. Serialized Outgoing JSON Response (Notice hashed_password is stripped!):")
+print("  ", user_response.model_dump_json(indent=2))
+
+db.close()
+
+======================================================================================================================================
+
+======================================================================================================================================
+
+======================================================================================================================================
+
+======================================================================================================================================
+
+======================================================================================================================================
