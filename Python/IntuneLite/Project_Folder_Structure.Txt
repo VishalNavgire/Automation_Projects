@@ -1,0 +1,59 @@
+IntuneLite/
+│
+├── app/
+│   ├── api/
+│   │   ├── dependencies.py       # JWT auth, get_current_device, get_admin_user, get_db
+│   │   └── v1/
+│   │       ├── admin.py          # Admin endpoints: compliance rules, system overview
+│   │       ├── auth.py           # Device enrollment tokens & Admin login endpoints
+│   │       ├── compliance.py     # Policy creation and compliance evaluation logic
+│   │       ├── devices.py        # Device inventory CRUD, heartbeats, check-ins
+│   │       └── scripts.py        # PowerShell/Bash script deployment repository
+│   │
+│   ├── core/
+│   │   ├── config.py             # App settings, API metadata, secret keys via Pydantic
+│   │   └── security.py           # Password hashing & JWT token generation/decoding
+│   │
+│   ├── db/
+│   │   ├── base.py               # DeclarativeBase catalog for SQLAlchemy
+│   │   └── session.py            # SQLite engine instance and session factory
+│   │
+│   ├── models/
+│   │   ├── __init__.py           # Exports all ORM models for Base.metadata.create_all
+│   │   ├── compliance.py         # CompliancePolicy table model
+│   │   ├── device.py             # ManagedDevice table model (hostname, OS, status)
+│   │   ├── script.py             # DeploymentScript table model (PowerShell/Bash scripts)
+│   │   └── user.py               # IT Admin user table model
+│   │
+│   └── schemas/
+│       ├── __init__.py
+│       ├── compliance.py         # Pydantic schemas for compliance rules
+│       ├── device.py             # Pydantic schemas for device registration & telemetry
+│       ├── script.py             # Pydantic schemas for script payloads
+│       ├── token.py              # JWT token response schema
+│       └── user.py               # Admin registration and response schemas
+│
+├── .env                          # Environment secrets (SECRET_KEY, DB_URL)
+├── intunelite.db                 # Local SQLite database file
+├── main.py                       # FastAPI application entrypoint and router mounts
+└── pyproject.toml                # Project dependencies
+
+
+
+Architectural Flow Summary
+[ Terminal Command ] ---> uvicorn main:app --reload
+                                   |
+                                   v
+                             [ main.py ]
+                                   |
+       +---------------------------+---------------------------+
+       |                                                       |
+[ Executes lifespan ]                                 [ Mounts Routers ]
+   - Registers models                                    - /api/v1/auth
+   - Runs create_all() -> intunelite.db                  - /api/v1/devices
+       |                                                       |
+       +---------------------------+---------------------------+
+                                   |
+                                   v
+                      [ FastAPI App Listening ]
+                       http://127.0.0.1:8000/docs
