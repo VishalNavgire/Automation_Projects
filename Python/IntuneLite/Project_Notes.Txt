@@ -1,0 +1,168 @@
+IntuneLite - Core Dependencies Reference Guide
+This document breaks down the primary packages installed in the IntuneLite virtual environment, their purpose, key classes, and how they function within an enterprise FastAPI backend.
+
+1. FastAPI (fastapi)
+Purpose: High-performance, modern Web API framework used to define RESTful endpoints, request routing, dependency injection, and automatic OpenAPI/Swagger UI generation.
+
+Key Classes & Utilities:
+
+FastAPI: The root application class used to instantiate the core API instance, configure metadata (title, version, docs URLs), and register routers.
+
+APIRouter: Mini-application routing container used to group related API endpoints (e.g., /devices, /compliance, /auth) into modular files.
+
+Depends: Dependency injection tool used to declare reusable per-request dependencies (e.g., injecting database sessions, parsing JWT headers).
+
+HTTPException: Standardized exception class used to raise client-facing HTTP error status codes (e.g., 401 Unauthorized, 404 Not Found).
+
+status: Module containing HTTP status code constants (e.g., status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST).
+
+2. Uvicorn (uvicorn[standard])
+Purpose: Lightning-fast, asynchronous Server Gateway Interface (ASGI) web server implementation used to run and serve FastAPI applications.
+
+Key Components:
+
+Uvicorn Server Engine: Listens for incoming HTTP/WebSocket connections and translates them into asynchronous ASGI event loops processed by FastAPI.
+
+[standard] Extras: Installs uvloop (a fast C-based event loop) and httptools (a fast HTTP parser) for optimal server throughput.
+
+3. SQLAlchemy (sqlalchemy)
+Purpose: Python SQL Toolkit and Object Relational Mapper (ORM) that maps Python classes to database tables and translates Python code into native database queries.
+
+Key Classes & Utilities:
+
+DeclarativeBase: Base catalog class (Base) from which all SQLAlchemy database ORM models inherit, registering tables into a unified metadata registry.
+
+Mapped / mapped_column: Modern SQLAlchemy 2.0 type-hinting constructs used to define table columns, primary keys, nullability, and database data types.
+
+create_engine: Database engine manager responsible for opening connection pools to database files or remote servers (e.g., SQLite, PostgreSQL).
+
+sessionmaker: Factory class used to create isolated database transaction sessions (SessionLocal).
+
+Session: Session object handling active transactions (add, commit, rollback, close, execute).
+
+select: SQLAlchemy 2.0 SQL query builder used to retrieve ORM instances or columns via structured statements.
+
+4. Pydantic (pydantic)
+Purpose: Data validation and settings management library using Python type annotations. It validates incoming JSON request payloads and formats outgoing JSON HTTP responses.
+
+Key Classes & Utilities:
+
+BaseModel: Base class used to construct data validation schemas (e.g., DeviceCreate, TokenData, UserResponse).
+
+Field: Field configuration tool used to enforce metadata rules, string lengths, numeric ranges, and default values on model properties.
+
+EmailStr: Special Pydantic string type that enforces RFC-compliant email address validation.
+
+5. Pydantic Settings (pydantic-settings)
+Purpose: Extension of Pydantic designed to parse, validate, and load environment variables and local .env configuration files into type-safe Python settings objects.
+
+Key Classes & Utilities:
+
+BaseSettings: Core settings model class that automatically reads environment variables and assigns default fallback values.
+
+SettingsConfigDict: Configuration dictionary used to specify properties like .env file locations, character encoding, and handling extra attributes.
+
+6. PyJWT (pyjwt)
+Purpose: Cryptographic JSON Web Token (JWT) library used to create, sign, parse, and verify stateless authentication tokens for secure client-server communication.
+
+Key Classes & Utilities:
+
+jwt.encode(): Function that takes a payload dictionary and signs it using a secret key and cryptographic algorithm (e.g., HS256) to produce a JWT string.
+
+jwt.decode(): Function that parses a JWT string, verifies its cryptographic signature against the secret key, checks expiration timestamps (exp), and returns the claims payload.
+
+PyJWTError / ExpiredSignatureError: Exception types raised when a token signature is invalid, tampered with, or expired.
+
+7. Password Libraries (pwdlib[argon2,bcrypt])
+Purpose: Modern, secure password-hashing library implementing industry-standard algorithms (Argon2id and Bcrypt) to hash passwords before storing them in a database.
+
+Key Classes & Utilities:
+
+PasswordHash: Primary interface configured with hashing schemes (e.g., Argon2, Bcrypt) used to hash plain-text passwords and verify submitted login credentials against stored hashes.
+
+PasswordHash.recommended(): Factory method that initializes PasswordHash using current security best practices.
+
+8. Python Multipart (python-multipart)
+Purpose: Streaming multipart parser required by FastAPI to handle form data submissions (application/x-www-form-urlencoded and multipart/form-data).
+
+Key Usage:
+
+Required internally when using FastAPI's OAuth2PasswordRequestForm dependency for user authentication endpoints (POST /token).
+
+======================================================================================================================================
+Notes:
+
+In Python, any directory containing an __init__.py file is treated as a Python Package.
+
+While Python 3.3+ introduced "implicit namespace packages" (allowing directories to be imported without an __init__.py file), adding __init__.py to directories like app/schemas/ remains standard software engineering practice for two main reasons: Clean Imports (Central Export Catalog) and Explicit Package Boundary Resolution.
+
+1. Central Export Catalog (Simplifying Imports)
+Without an __init__.py exporting your schemas, whenever you want to import multiple schemas into your routers (app/api/v1/compliance.py or admin.py), you would have to write multiple long import lines:
+
+Python
+# Without __init__.py exports (Messy & Verbose)
+from app.schemas.user import UserCreate, UserResponse
+from app.schemas.device import ManagedDeviceCreate, ManagedDeviceResponse
+from app.schemas.compliance import CompliancePolicyCreate, CompliancePolicyResponse
+By defining an explicit export list inside app/schemas/__init__.py:
+
+Python
+from app.schemas.user import UserCreate, UserResponse
+from app.schemas.device import ManagedDeviceCreate, ManagedDeviceResponse
+from app.schemas.compliance import CompliancePolicyCreate, CompliancePolicyResponse
+
+__all__ = [
+    "UserCreate",
+    "UserResponse",
+    "ManagedDeviceCreate",
+    "ManagedDeviceResponse",
+    "CompliancePolicyCreate",
+    "CompliancePolicyResponse",
+]
+You collapse all schema access into a single clean line across your entire application:
+
+Python
+# With __init__.py exports (Clean & Standard)
+from app.schemas import UserCreate, ManagedDeviceCreate, CompliancePolicyCreate
+2. Explicit Package Boundary Resolution
+Having __init__.py files inside subfolders like app/schemas/, app/models/, app/db/, and app/core/:
+
+Tells static analysis tools (like Pyright, mypy, and VS Code/Pycharm IntelliSense) that schemas is a formal module namespace.
+
+Prevents module resolution collisions if external third-party packages installed in venv happen to share a similar directory name.
+
+Dictates what from app.schemas import * exposes via the __all__ list.
+
+Is it strictly required?
+If you prefer to import directly from individual files (e.g., from app.schemas.compliance import CompliancePolicyCreate), you do not strictly need an __init__.py inside app/schemas/.
+
+However, keeping __init__.py as a central catalog is standard practice across production FastAPI projects because it keeps import blocks organized as your project grows!
+
+--------------------------------------------------------------
+Automatic Connection & Resource Management (No Memory Leaks)
+Connecting to a database takes server resources. If you open a database connection in Python and forget to close it (for example, if your code throws an unexpected error midway), that connection stays "open" in memory. Over time, open connections accumulate until your application runs out of database memory—a problem known as a connection leak.
+
+The with statement guarantees that the session closes automatically the moment execution leaves the block, even if an exception occurs inside.
+
+The Old, Risky Way (Manual Management)
+Without a context manager, you have to write manual try...finally blocks to ensure the connection closes safely:
+
+Python
+# MANUAL WAY (Verbose & Error-Prone)
+session = Session(engine)
+try:
+    users = session.execute(text("SELECT * FROM users")).fetchall()
+    print(users)
+finally:
+    # If you forget this line, the connection stays open forever!
+    session.close()
+
+ The Modern Way (Using with Session)
+The context manager simplifies everything into a clean, safe block:
+
+Python
+# CONTEXT MANAGER WAY (Clean & Safe)
+with Session(engine) as session:
+    users = session.execute(text("SELECT * FROM users")).fetchall()
+    print(users)
+# Connection closes automatically right here!   
