@@ -13,8 +13,8 @@ TEMPLATE = {
 FILES = {
     "README.md": "# Project Title\n\nGenerated automatically.",
     "requirements.txt": "",
-    ".gitignore": "venv/\n__pycache__/",
-    "LICENSE": f"Copyright {datetime.now().year}",
+    ".gitignore": ".venv/\n__pycache__/",
+    "LICENSE": f"Copyright {datetime.now().year}",  # noqa: DTZ005
 }
 
 def validate_path_length(project_path):
@@ -30,7 +30,7 @@ def validate_path_length(project_path):
     print(f"\nProject path length: {path_length}")
 
     if path_length > max_limit:
-        raise Exception(f"Path too long! Max allowed is {max_limit} characters.")
+        raise Exception(f"For OS type: '{os.name}' path is too long! Max allowed is {max_limit} characters.")  # noqa: TRY002
 
     elif path_length > safe_limit:
         print("Warning: Path is long and may cause issues on some tools.")
@@ -56,9 +56,9 @@ def get_user_dependencies():
 
 def get_pip_path(project_name):
     if os.name == 'nt':  # Windows
-        return os.path.join(project_name, "venv", "Scripts", "pip.exe")
+        return os.path.join(project_name, ".venv", "Scripts", "pip.exe")
     else:  # Linux/macOS
-        return os.path.join(project_name, "venv", "bin", "pip")
+        return os.path.join(project_name, ".venv", "bin", "pip")
 
 def create_project(project_name):
     # project_path = os.path.abspath(project_name)
@@ -68,58 +68,86 @@ def create_project(project_name):
     # os.chdir(project_path)
     root.mkdir(parents=True, exist_ok=True)
 
-    print(f"Creating structure in: {root}")
+    if root:
+        print(f"Successfully created directory named: {root} \n")
 
-    # Create folder structure
-    for folder, subfolders in TEMPLATE.items():
-        # os.makedirs(folder, exist_ok=True)
-        f_path = root / folder
-        f_path.mkdir(exist_ok=True)
-        for sf in subfolders:
-            # os.makedirs(os.path.join(folder, sf), exist_ok=True)
-            (f_path / sf).mkdir(exist_ok=True)
+        print(f"Creating structure in: {root} \n")
 
-    # Get dependencies from user
-    dependencies = get_user_dependencies()
+        # Create folder structure
+        for folder, subfolders in TEMPLATE.items():
+            # os.makedirs(folder, exist_ok=True)
+            f_path = root / folder
+            f_path.mkdir(exist_ok=True)
+            for sf in subfolders:
+                # os.makedirs(os.path.join(folder, sf), exist_ok=True)
+                (f_path / sf).mkdir(exist_ok=True)
 
-    # Create base files
-    for filename, content in FILES.items():
-        file_path = root / filename
-        with open(file_path, "w") as f:
-            if filename == "requirements.txt":
-                f.write("\n".join(dependencies))
-            else:
-                f.write(content)
+        # Get dependencies from user
+        dependencies = get_user_dependencies()
 
-     # Initialize Git
-    # subprocess.run(["git", "init", project_path], check=True)
-    subprocess.run(["git", "init", str(root)], check=True)
+        # Create base files
+        for filename, content in FILES.items():
+            file_path = root / filename
+            with open(file_path, "w") as f:
+                if filename == "requirements.txt":
+                    f.write("\n".join(dependencies))
+                else:
+                    f.write(content)
 
-    # Create virtual environment
-    # subprocess.run([sys.executable, "-m", "venv", os.path.join(project_path, "venv")], check=True)
-    subprocess.run([sys.executable, "-m", "venv", str(root / "venv")], check=True)
+        # Initialize Git
+        # subprocess.run(["git", "init", project_path], check=True)
+        subprocess.run(["git", "init", str(root)], check=True)
 
-    # Install dependencies using venv pip
-    pip_path = get_pip_path(root)
+        subprocess.run( ["git", "branch", "-M", "main"], cwd=root, check=True)
+        
+        # -------------------------------------------------------------
+        # Git: Stage and commit generated project files
+        # -------------------------------------------------------------
+        print("\nStaging generated project files...")
 
-    # Upgrade pip INSIDE venv
-    subprocess.run([pip_path, "install", "--upgrade", "pip"], check=True)
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
 
-    if dependencies:
-        print("\n Installing dependencies...")
-        subprocess.run([pip_path, "install"] + dependencies, check=True)
+        print("Creating initial Git commit...")
 
-        # Freeze exact versions back to requirements.txt
-        # with open("requirements.txt", "w") as f:
-        #     subprocess.run([pip_path, "freeze"], stdout=f)
+        subprocess.run(["git", "commit", "-m", "chore: initialize project scaffold"], cwd=root, check=True )
 
-        freeze = input("Freeze versions? (y/n): ").lower()
+        print("\nInitial Git commit created successfully.")
 
-        if freeze == "y":
-            with open(root / "requirements.txt", "w") as f:
-                subprocess.run([pip_path, "freeze"], stdout=f)
+        # Create virtual environment
+        # subprocess.run([sys.executable, "-m", "venv", os.path.join(project_path, "venv")], check=True)
+        subprocess.run([sys.executable, "-m", "venv", str(root / ".venv")], check=True)
 
-    print(f"\n Project '{root}' created successfully with dependencies!")
+        # Install dependencies using venv pip
+        pip_path = get_pip_path(root)
+
+        # Upgrade pip INSIDE venv
+        subprocess.run([pip_path, "install", "--upgrade", "pip"], check=True)
+
+        # Create virtual environment
+        # subprocess.run([sys.executable, "-m", "venv", os.path.join(project_path, "venv")], check=True)
+        subprocess.run([sys.executable, "-m", "venv", str(root / ".venv")], check=True)
+
+        # Install dependencies using venv pip
+        pip_path = get_pip_path(root)
+
+        # Upgrade pip INSIDE venv
+        subprocess.run([pip_path, "install", "--upgrade", "pip"], check=True)
+
+        if dependencies:
+            print("\n Installing dependencies...")
+            subprocess.run([pip_path, "install"] + dependencies, check=True)
+
+            # Freeze exact versions back to requirements.txt
+            # with open("requirements.txt", "w") as f:
+            #     subprocess.run([pip_path, "freeze"], stdout=f)
+
+            freeze = input("Freeze versions? (y/n): ").lower()
+
+            if freeze == "y":
+                with open(root / "requirements.txt", "w") as f:
+                    subprocess.run([pip_path, "freeze"], stdout=f)  # noqa: PLW1510
+
+        print(f"\n Project '{root}' created successfully with dependencies!")
 
 # Run
 if __name__ == "__main__":
