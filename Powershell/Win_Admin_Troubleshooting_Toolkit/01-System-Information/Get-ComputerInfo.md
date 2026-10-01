@@ -160,15 +160,15 @@ Use the result to determine the **next diagnostic question**.
 
 The next command depends on what you discovered.
 
-| Finding                           | Possible next command       |
-| --------------------------------- | --------------------------- |
-| OS build looks unexpected         | `Get-Win32-OperatingSystem` |
-| Hardware information is required  | `Get-Win32-ComputerSystem`  |
-| BIOS/firmware needs investigation | `Get-Win32-BIOS`            |
-| Need detailed CIM information     | `Get-CimInstance`           |
-| Need native Windows fallback      | `systeminfo`                |
-| Need update information           | `Get-HotFix`                |
-| Need performance investigation    | `Get-Counter`               |
+| Finding                           | Possible next command                   |
+| --------------------------------- | --------------------------------------- |
+| OS build looks unexpected         | `Get-CimInstance Win32-OperatingSystem` |
+| Hardware information is required  | `Get-CimInstance Win32-ComputerSystem`  |
+| BIOS/firmware needs investigation | `Get-CimInstance Win32-BIOS`            |
+| Need detailed CIM information     | `Get-CimInstance`                       |
+| Need native Windows fallback      | `systeminfo`                            |
+| Need update information           | `Get-HotFix`                            |
+| Need performance investigation    | `Get-Counter`                           |
 
 ---
 
